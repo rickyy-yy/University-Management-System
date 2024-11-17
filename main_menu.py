@@ -166,7 +166,10 @@ def check_admin_login(user_id, user_password):  # Checks if the username and pas
         if user_id == username:  # Checks if username exists
             if user_password == password:  # If username exists, checks if passwords match
                 login_success()
-        login_fail()
+            else:
+                login_fail()
+        else:
+            login_fail()
 
 
 def login_success():  # Shows success message and sends user to the main admin menu
@@ -423,7 +426,7 @@ def view_courses():  # Lists all courses in paginated view
                     target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
                     if target_page == 0:  # Exit option for user
                         print("")
-                        manage_courses_menu()
+                        view_all_data()
                 except ValueError:
                     pass
                 if target_page > len(pages):  # Checks if page exists
@@ -483,89 +486,93 @@ def edit_student():
                 student_id = student[0:5]  # Gets student IDs and add them to list
                 available_student_ids.append(student_id)
 
-        target_student_id = ""  # Gets the target student ID from user
-        while True:
-            try:
-                if len(target_student_id) != 5 or target_student_id not in available_student_ids:  # Length and existence check
-                    if target_student_id == 'exit':  # Exit option for users
-                        manage_students_menu()
-                    if len(available_student_ids) == 0:  # Check if there are students at all
-                        print("")
-                        print("There are no students yet! A registrar account needs to create a student account first.")
-                        print("")
-                        manage_students_menu()
+        if len(available_student_ids) == 0:
+            print("")
+            print("There are no students to edit!")
+            manage_students_menu()
+        else:
+            target_student_id = ""  # Gets the target student ID from user
+            while True:
+                try:
+                    if len(target_student_id) != 5 or target_student_id not in available_student_ids:  # Length and existence check
+                        if target_student_id == 'exit':  # Exit option for users
+                            manage_students_menu()
+                        if len(available_student_ids) == 0:  # Check if there are students at all
+                            print("")
+                            print("There are no students yet! A registrar account needs to create a student account first.")
+                            print("")
+                            manage_students_menu()
+                        else:
+                            print(
+                                f"The latest student ID in use is {available_student_ids[len(available_student_ids) - 1]}")  # Shows the latest student ID
+                            print("Enter 'exit' to return to previous menu.")
+                            target_student_id = input("Student ID (5 characters and exists): ")
                     else:
-                        print(
-                            f"The latest student ID in use is {available_student_ids[len(available_student_ids) - 1]}")  # Shows the latest student ID
-                        print("Enter 'exit' to return to previous menu.")
-                        target_student_id = input("Student ID (5 characters and exists): ")
-                else:
-                    break
-            except ValueError:
-                pass
+                        break
+                except ValueError:
+                    pass
 
-        for student in students:  # Searches for the data of the intended student
-            if student[0:5] == target_student_id:
-                target_student = student
+            for student in students:  # Searches for the data of the intended student
+                if student[0:5] == target_student_id:
+                    target_student = student
 
-        current_student_id, current_name, current_course_code, current_phone_number, current_email, current_gender, current_dob = target_student.split(
-            ',')
+            current_student_id, current_name, current_course_code, current_phone_number, current_email, current_gender, current_dob = target_student.split(',')
 
-        print("============================")  # Displays the current student info
-        print(f"Student ID: {current_student_id}")
-        print(f"Student Name: {current_name}")
-        print(f"Student Course: {current_course_code}")
-        print(f"Student Phone Number: {current_phone_number}")
-        print(f"Student Email: {current_email}")
-        print(f"Student Gender: {current_gender}")
-        print(f"Student Date of Birth: {current_dob}")
-        print("============================")
+            print("============================")  # Displays the current student info
+            print(f"Student ID: {current_student_id}")
+            print(f"Student Name: {current_name}")
+            print(f"Student Course: {current_course_code}")
+            print(f"Student Phone Number: {current_phone_number}")
+            print(f"Student Email: {current_email}")
+            print(f"Student Gender: {current_gender}")
+            print(f"Student Date of Birth: {current_dob}")
+            print("============================")
 
-        print("")
-        print("What do you wish to edit?")
-        print("")
-        print("1) Student Name")
-        print("2) Student Course")
-        print("3) Student Phone Number")
-        print("4) Student Email")
-        print("5) Student Gender")
-        print("6) Student Date of Birth")
-        print("7) Return to student menu")
-        print("")
+            print("")
+            print("What do you wish to edit?")
+            print("")
+            print("1) Student Name")
+            print("2) Student Course")
+            print("3) Student Phone Number")
+            print("4) Student Email")
+            print("5) Student Gender")
+            print("6) Student Date of Birth")
+            print("7) Return to student menu")
+            print("")
 
-        while True:  # Repeats infinitely unless a valid choice is given
-            try:
-                choice = int(input("Enter your choice (1/2/3/4/5/6/7): "))  # Gets the user's input
-                if choice in [1, 2, 3, 4, 5, 6, 7]:  # Checks if the user input is valid
-                    break  # Stops the while loop
-                else:
+            while True:  # Repeats infinitely unless a valid choice is given
+                try:
+                    choice = int(input("Enter your choice (1/2/3/4/5/6/7): "))  # Gets the user's input
+                    if choice in [1, 2, 3, 4, 5, 6, 7]:  # Checks if the user input is valid
+                        break  # Stops the while loop
+                    else:
+                        print("You need to enter a value between 1 and 7!")
+                        print("")
+                except ValueError:  # Exception handling in case a non-integer value is inputted
                     print("You need to enter a value between 1 and 7!")
                     print("")
-            except ValueError:  # Exception handling in case a non-integer value is inputted
-                print("You need to enter a value between 1 and 7!")
-                print("")
 
-        match choice:
-            case 1:
-                change_student_name(target_student_id, students, current_name)
-            case 2:
-                change_student_course(target_student_id, students, current_course_code)
-            case 3:
-                change_student_phone_number(target_student_id, students, current_phone_number)
-            case 4:
-                change_student_email(target_student_id, students, current_email)
-            case 5:
-                change_student_gender(target_student_id, students, current_gender)
-            case 6:
-                change_student_dob(target_student_id, students, current_dob)
-            case 7:
-                manage_students_menu()
+            match choice:
+                case 1:
+                    change_student_name(target_student_id, students, current_name)
+                case 2:
+                    change_student_course(target_student_id, students, current_course_code)
+                case 3:
+                    change_student_phone_number(target_student_id, students, current_phone_number)
+                case 4:
+                    change_student_email(target_student_id, students, current_email)
+                case 5:
+                    change_student_gender(target_student_id, students, current_gender)
+                case 6:
+                    change_student_dob(target_student_id, students, current_dob)
+                case 7:
+                    manage_students_menu()
 
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
 
-def delete_student():
+def delete_student():  # Searches for a student ID and pops it from the array
     students_filepath = "../files/students.txt"  # Relative filepath of collection of student data
     try:
         with open(students_filepath, "r") as file:  # Reads and fetches student data
@@ -575,20 +582,18 @@ def delete_student():
                 available_student_ids.append(student[0:5])
 
         target_student_id = ""
-        while True:
+        while True:  # Infinitely asks for student ID until valid ID is given
             try:
-                if len(target_student_id) != 5 or target_student_id not in available_student_ids:
-                    if target_student_id == 'exit':
+                if len(target_student_id) != 5 or target_student_id not in available_student_ids:  # Length and existence check
+                    if target_student_id == 'exit':  # Exit option for users
                         manage_courses_menu()
-                    if len(available_student_ids) == 0:
+                    if len(available_student_ids) == 0:  # If there are no students, do not allow user to delete anything
                         print("")
-                        print(
-                            "There are no students registered yet! A registrar needs to register a student before deleting one.")
+                        print("There are no students registered yet! A registrar needs to register a student before deleting one.")
                         print("")
                         manage_students_menu()
                     else:
-                        print(
-                            f"The latest student ID in use is {available_student_ids[len(available_student_ids) - 1]}")
+                        print(f"The latest student ID in use is {available_student_ids[len(available_student_ids) - 1]}")  # Shows the last registered student ID
                         print("Enter 'exit' to return to previous menu.")
                         target_student_id = input("Student ID (5 characters and exists): ")
                 else:
@@ -596,7 +601,7 @@ def delete_student():
             except ValueError:
                 pass
 
-        if len(students) == 1:
+        if len(students) == 1:  # If there is only one student registered, do not need to search for student, just delete everything straightaway
             open(students_filepath, 'w').close()
             print(f"Student {target_student_id} was successfully deleted!")
             print("")
@@ -604,10 +609,10 @@ def delete_student():
         else:
             for student in students:
                 if target_student_id == student[0:5]:
-                    students.pop(students.index(student))
+                    students.pop(students.index(student))  # Get the index of the matching student and pops it
             try:
                 with open(students_filepath, "w") as file:
-                    file.writelines(students)
+                    file.writelines(students)  # Overwrite the file with the updated list of students
                 print(f"Student {target_student_id} was successfully deleted!")
                 print("")
                 manage_students_menu()
@@ -618,8 +623,8 @@ def delete_student():
 
 
 def view_students():
-    students_filepath = "../files/students.txt"
-    pages = {1: []}
+    students_filepath = "../files/students.txt"  # Relative filepath of the collection of students
+    pages = {1: []}  # Initialize a dictionary that stores students
 
     try:
         with open(students_filepath, "r") as file:
@@ -629,29 +634,28 @@ def view_students():
                 student = student.strip('\n')
                 if is_page_full(pages):
                     create_new_page(pages)
-                write_to_page(pages, student)
+                write_to_page(pages, student)  # Stores the student in the latest available page
 
             print(f"There are {len(students)} students registered stored in {len(pages)} page(s).")
             print("")
 
             while True:
                 for page in pages:
-                    print(f"Page {page} (First Entry: {pages.get(page)[0][0:5]})")
+                    print(f"Page {page} (First Entry: {pages.get(page)[0][0:5]})")  # Shows the first student ID of each page
                 try:
                     print("")
                     target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
-                    if target_page == 0:
+                    if target_page == 0:  # Exit option for users
                         print("")
-                        manage_students_menu()
+                        view_all_data()
                 except ValueError:
                     pass
-                if target_page > len(pages):
+                if target_page > len(pages):  # Checks if the page exists
                     print(f"Page {target_page} does not exist!")
                 else:
                     current_students = pages.get(target_page)
                     for student in current_students:
-                        student_id, student_name, student_course, student_phone_number, student_email, student_gender, student_dob = student.split(
-                            ',')
+                        student_id, student_name, student_course, student_phone_number, student_email, student_gender, student_dob = student.split(',')
                         print(f"Student ID: {student_id}")
                         print(f"Student Name: {student_name}")
                         print(f"Student Course Code: {student_course}")
@@ -666,25 +670,24 @@ def view_students():
         print("An error has occurred! The file was not found. Please contact developer.")
 
 
-def change_student_name(student_id, students, current_name):
+def change_student_name(student_id, students, current_name):  # Gets and edits the student name of the target student
     students_filepath = "../files/students.txt"
 
     print("")
-    print(f"{student_id} name is currently {current_name}.")
-    new_name = input(f"Enter {student_id}'s new name: ")
+    print(f"{student_id} name is currently {current_name}.")  # Shows current student name
+    new_name = input(f"Enter {student_id}'s new name: ")  # Gets new student name
 
     for student in students:
         if student[0:5] == student_id:
             index = students.index(student)
             target_student = student
-            current_student_id, current_name, current_course_code, current_phone_number, current_email, current_gender, current_dob = target_student.split(
-                ',')
+            current_student_id, current_name, current_course_code, current_phone_number, current_email, current_gender, current_dob = target_student.split(',')
             updated_student_info = f"{current_student_id},{new_name},{current_course_code},{current_phone_number},{current_email},{current_gender},{current_dob}"
             students[index] = updated_student_info
 
             try:
                 with open(students_filepath, 'w') as file:
-                    file.writelines(students)
+                    file.writelines(students)  # Overwrite the student save file
                 print("")
                 print("Student Info Updated Successfully")
                 manage_students_menu()
@@ -1145,7 +1148,7 @@ def view_lecturers():
                     target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
                     if target_page == 0:
                         print("")
-                        manage_lecturers_menu()
+                        view_all_data()
                 except ValueError:
                     pass
                 if target_page > len(pages):
@@ -1318,7 +1321,7 @@ def view_faculties():
                     target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
                     if target_page == 0:
                         print("")
-                        manage_faculties_menu()
+                        view_all_data()
                 except ValueError:
                     pass
                 if target_page > len(pages):
@@ -1380,6 +1383,8 @@ def generate_report():
     print(f"| Total Faculties: {total_faculties}")
     print("")
 
+    admin_menu()
+
 
 def view_all_data():
     students_filepath = "../files/students.txt"
@@ -1428,18 +1433,19 @@ def view_all_data():
     print("2) View All Active Courses")
     print("3) View All Registered Courses")
     print("4) View All Faculties")
+    print("5) Back to Admin Menu")
     print("")
 
     while True:  # Repeats infinitely unless a valid choice is given
         try:
-            choice = int(input("Enter your choice (1/2/3/4): "))  # Gets the user's input
-            if choice in [1, 2, 3, 4]:  # Checks if the user input is valid
+            choice = int(input("Enter your choice (1/2/3/4/5): "))  # Gets the user's input
+            if choice in [1, 2, 3, 4, 5]:  # Checks if the user input is valid
                 break  # Stops the while loop
             else:
-                print("You need to enter a value between 1 and 4!")
+                print("You need to enter a value between 1 and 5!")
                 print("")
         except ValueError:  # Exception handling in case a non-integer value is inputted
-            print("You need to enter a value between 1 and 4!")
+            print("You need to enter a value between 1 and 5!")
             print("")
 
     match choice:
@@ -1451,6 +1457,8 @@ def view_all_data():
             view_lecturers()
         case 4:
             view_faculties()
+        case 5:
+            admin_menu()
 
 
 def admin_logout():
@@ -1485,7 +1493,7 @@ def main_menu():
     print("4) Registrar")
     print("5) Accountant")
     print("")
-    print("Enter 6 if you wish to exit the program.")
+    print("Enter 6 if you wish two exit the program.")
     print("")
 
     while True:  # Repeats infinitely unless a valid choice is given
