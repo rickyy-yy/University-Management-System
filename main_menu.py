@@ -1,3 +1,58 @@
+import datetime
+from datetime import *
+
+
+def check_backup_date():  # Checks if the difference between the last backup and today is 3 days
+    backup_filepath = "../files/backup_date.txt"
+    try:
+        with open(backup_filepath, "r") as file:
+            last_backup_date = datetime.strptime(file.readline(), '%d-%m-%y').date()
+            if datetime.today().date() - last_backup_date > timedelta(days=3):  # Only back up data every 3 days
+                autobackup()
+    except FileNotFoundError:
+        print("Backup Failed! File not found. Contact developer.")
+
+
+def autobackup():  # Copies the contents of the files in /files directory and create a copy in the backup_files directory
+    all_files = ["accountants", "admins", "courses", "faculty", "fees", "grades", "lecturers", "modules", "registrars", "students"]
+    filepath = "../files/"
+    backup_filepath = "../backup_files/"
+    try:
+        for file in all_files:
+            path = f"{filepath}{file}.txt"
+            backup_path = f"{backup_filepath}{file}.txt"
+            with open(path, "r") as f:
+                file_contents = f.readlines()
+            with open(backup_path, "w") as other_file:
+                other_file.writelines(file_contents)
+
+        print("Backup successful! Last Backup Date has been updated.")
+        update_backup_date()
+    except FileNotFoundError:
+        print("Backup Failed! File not found. Contact developer.")
+
+
+def update_backup_date():  # Updates the backup_date.txt with the current date.
+    backup_filepath = "../files/backup_date.txt"
+    try:
+        with open(backup_filepath, "w") as file:
+            current_date = str(datetime.now().strftime('%d-%m-%y'))
+            file.writelines(current_date)
+    except FileNotFoundError:
+        print("Backup Success, but Date not Updated! File not found. Contact developer.")
+
+
+def check_backup_date_file():  # Checks if backup_date.txt exists, if no, it creates a new file
+    backup_filepath = "../files/backup_date.txt"
+    try:
+        file = open(backup_filepath, "r")
+        file.close()
+    except FileNotFoundError:
+        file = open(backup_filepath, "x")
+        file.write(str(datetime.now().strftime('%d-%m-%y')))
+        file.close()
+
+
 def check_courses_file():  # Checks if courses.txt exists, if no, it creates a new file
     courses_filepath = "../files/courses.txt"
     try:
@@ -132,6 +187,7 @@ def check_grades_file():  # Checks if grades.txt exists, if no, it creates a new
 
 
 def login_admin():  # The login page for admins
+    print("")
     print("========================")
     print("Administrator Login Page")
     print("========================")
@@ -1243,7 +1299,7 @@ def add_faculty():
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
-    manage_faculties_menu()  # Brings the user back to the course menu
+    manage_faculties_menu()  # Brings the user back to the faculties menu
 
 
 def delete_faculty():
@@ -1523,4 +1579,6 @@ def main_menu():
             exit()  # Exits the program
 
 
-main_menu()
+#main_menu()
+check_backup_date_file()
+check_backup_date()
