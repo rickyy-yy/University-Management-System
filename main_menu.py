@@ -220,9 +220,10 @@ def check_admin_login(user_id, user_password):  # Checks if the username and pas
     for account in accounts:  # Parses the comma separated values into individual values
         username, password = account.split(',')  # Account is always stored in the format: username,password
         if user_id == username:  # Checks if username exists
-            if user_password == password:  # If username exists, checks if passwords match
+            if user_password == password.strip('\n'):  # If username exists, checks if passwords match
                 login_success()
             else:
+                print("PW Wrong")
                 login_fail()
         else:
             login_fail()
@@ -392,13 +393,78 @@ def add_course():  # Creates a new course and stores it to file
                     print("You need to enter an integer value!")
                     print("")
 
+            while True:
+                try:
+                    sem_1_fees = int(input("Enter Semester 1 Fees: "))
+                    if sem_1_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
+            while True:
+                try:
+                    sem_2_fees = int(input("Enter Semester 2 Fees: "))
+                    if sem_2_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
+            while True:
+                try:
+                    sem_3_fees = int(input("Enter Semester 3 Fees: "))
+                    if sem_3_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
+            while True:
+                try:
+                    sem_4_fees = int(input("Enter Semester 4 Fees: "))
+                    if sem_4_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
+            while True:
+                try:
+                    sem_5_fees = int(input("Enter Semester 5 Fees: "))
+                    if sem_5_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
+            while True:
+                try:
+                    sem_6_fees = int(input("Enter Semester 6 Fees: "))
+                    if sem_6_fees > 0:
+                        break
+                    else:
+                        print("You need to enter an integer value larger than 0!")
+                        print("")
+                except ValueError:
+                    print("You need to enter an integer value!")
+
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
     try:
         with open(courses_filepath, "a") as file:
-            entry = f"{course_code},{course_name},{course_credits}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
-
+            entry = f"{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
             file.write(entry)  # Writes the info to file
 
             print("")
@@ -489,11 +555,18 @@ def view_courses():  # Lists all courses in paginated view
                     print(f"Page {target_page} does not exist!")
                 else:
                     current_courses = pages.get(target_page)  # Prints all courses stored on that page
+                    print(current_courses)
                     for course in current_courses:
-                        course_code, course_name, course_credits = course.split(',')
+                        course_code, course_name, course_credits, sem_1, sem_2, sem_3, sem_4, sem_5, sem_6 = course.split(',')
                         print(f"Course Code: {course_code}")
                         print(f"Course Name: {course_name}")
                         print(f"Course Credits: {course_credits}")
+                        print(f"Semester 1 Fees: ${sem_1}")
+                        print(f"Semester 2 Fees: ${sem_2}")
+                        print(f"Semester 3 Fees: ${sem_3}")
+                        print(f"Semester 4 Fees: ${sem_4}")
+                        print(f"Semester 5 Fees: ${sem_5}")
+                        print(f"Semester 6 Fees: ${sem_6}")
                         print("=====================================")
 
 
@@ -1485,9 +1558,9 @@ def view_all_data():
     print(f"| Total Registered Modules: {total_modules}")
     print(f"| Total Faculties: {total_faculties}")
     print("")
-    print("1) View All Student Data")
-    print("2) View All Active Courses")
-    print("3) View All Registered Courses")
+    print("1) View All Active Courses")
+    print("2) View All Student Data")
+    print("3) View All Registered Lecturers")
     print("4) View All Faculties")
     print("5) Back to Admin Menu")
     print("")
@@ -1580,5 +1653,5 @@ def main_menu():
 
 
 #main_menu()
-check_backup_date_file()
-check_backup_date()
+view_courses()
+
