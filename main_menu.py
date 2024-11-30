@@ -26,7 +26,7 @@ def autobackup():  # Copies the contents of the files in /files directory and cr
             with open(backup_path, "w") as other_file:
                 other_file.writelines(file_contents)
 
-        print("Backup successful! Last Backup Date has been updated.")
+        print("Backup successful! Last backup date has been updated.")
         update_backup_date()
     except FileNotFoundError:
         print("Backup Failed! File not found. Contact developer.")
@@ -186,6 +186,26 @@ def check_grades_file():  # Checks if grades.txt exists, if no, it creates a new
         file.close()
 
 
+def check_lecturer_account_file():  # Checks if lecturer_accounts.txt exists, if no, it creates a new file
+    lecturer_account_filepath = "../files/lecturer_accounts.txt"
+    try:
+        file = open(lecturer_account_filepath, "r")
+        file.close()
+    except FileNotFoundError:
+        file = open(lecturer_account_filepath, "x")
+        file.close()
+
+
+def check_student_account_file():  # Checks if lecturer_accounts.txt exists, if no, it creates a new file
+    student_account_filepath = "../files/student_accounts.txt"
+    try:
+        file = open(student_account_filepath, "r")
+        file.close()
+    except FileNotFoundError:
+        file = open(student_account_filepath, "x")
+        file.close()
+
+
 def login_admin():  # The login page for admins
     print("")
     print("========================")
@@ -211,22 +231,27 @@ def login_admin():  # The login page for admins
 
 def check_admin_login(user_id, user_password):  # Checks if the username and password provided exists and matches
     admin_filepath = "../files/admins.txt"  # Relative filepath for the collection of admin usernames and passwords
+    registered_admin_usernames = []
+    registered_admin_passwords = []
+
     try:
         with open(admin_filepath, "r") as file:
             accounts = file.readlines()  # Fetches all admin accounts stored
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
-    for account in accounts:  # Parses the comma separated values into individual values
-        username, password = account.split(',')  # Account is always stored in the format: username,password
-        if user_id == username:  # Checks if username exists
-            if user_password == password.strip('\n'):  # If username exists, checks if passwords match
-                login_success()
-            else:
-                print("PW Wrong")
-                login_fail()
+    for account in accounts:
+        username, password = account.strip('\n').split(",")
+        registered_admin_usernames.append(username)
+        registered_admin_passwords.append(password)
+    if user_id in registered_admin_usernames:
+        if user_password == registered_admin_passwords[registered_admin_usernames.index(user_id)]:
+            login_success()
         else:
+            print("PW Wrong")
             login_fail()
+    else:
+        login_fail()
 
 
 def login_success():  # Shows success message and sends user to the main admin menu
@@ -288,21 +313,23 @@ def admin_menu():  # The admin main menu
     print("2) Manage Students")
     print("3) Manage Lecturers")
     print("4) Manage Faculties")
-    print("5) Generate Report")
-    print("6) View All Data")
-    print("7) Log Out")
+    print("5) Manage Modules")
+    print("6) Generate Report")
+    print("7) View All Data")
+    print("8) Register an Account")
+    print("9) Log Out")
     print("")
 
     while True:  # Repeats infinitely unless a valid choice is given
         try:
-            choice = int(input("Enter your choice (1/2/3/4/5/6/7): "))  # Gets the user's input
-            if choice in [1, 2, 3, 4, 5, 6, 7]:  # Checks if the user input is valid
+            choice = int(input("Enter your choice (1/2/3/4/5/6/7/8/9): "))  # Gets the user's input
+            if choice in [1, 2, 3, 4, 5, 6, 7, 8, 9]:  # Checks if the user input is valid
                 break  # Stops the while loop
             else:
-                print("You need to enter a value between 1 and 7!")
+                print("You need to enter a value between 1 and 9!")
                 print("")
         except ValueError:  # Exception handling in case a non-integer value is inputted
-            print("You need to enter a value between 1 and 7!")
+            print("You need to enter a value between 1 and 9!")
             print("")
 
     match choice:
@@ -315,10 +342,14 @@ def admin_menu():  # The admin main menu
         case 4:
             manage_faculties_menu()
         case 5:
-            generate_report()
+            manage_modules_menu()
         case 6:
-            view_all_data()
+            generate_report()
         case 7:
+            view_all_data()
+        case 8:
+            account_registration_menu()
+        case 9:
             admin_logout()
 
 
@@ -464,7 +495,10 @@ def add_course():  # Creates a new course and stores it to file
 
     try:
         with open(courses_filepath, "a") as file:
-            entry = f"{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
+            if used_course_codes:
+                entry = f"\n{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}"  # Compiles the info above into the format: course_code,course_name, course_credits
+            else:
+                entry = f"{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}"
             file.write(entry)  # Writes the info to file
 
             print("")
@@ -543,19 +577,21 @@ def view_courses():  # Lists all courses in paginated view
                 for page in pages:
                     print(
                         f"Page {page} (First Entry: {pages.get(page)[0][0:5]})")  # Shows the course code of the first course in each page
-                try:
-                    print("")
-                    target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
-                    if target_page == 0:  # Exit option for user
+                while True:
+                    try:
                         print("")
-                        view_all_data()
-                except ValueError:
-                    pass
+                        target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
+                        if type(target_page) is int and 0 <= target_page <= len(pages):
+                            if target_page == 0:  # Exit option for user
+                                print("")
+                                view_all_data()
+                            break
+                    except ValueError:
+                        pass
                 if target_page > len(pages):  # Checks if page exists
                     print(f"Page {target_page} does not exist!")
                 else:
                     current_courses = pages.get(target_page)  # Prints all courses stored on that page
-                    print(current_courses)
                     for course in current_courses:
                         course_code, course_name, course_credits, sem_1, sem_2, sem_3, sem_4, sem_5, sem_6 = course.split(',')
                         print(f"Course Code: {course_code}")
@@ -1186,7 +1222,10 @@ def add_lecturer():
 
     try:
         with open(lecturers_filepath, "a") as file:
-            entry = f"{lecturer_id},{lecturer_name},{lecturer_faculty_code},{module_1},{module_2},{module_3},{module_4}\n"
+            if used_lecturer_ids:
+                entry = f"\n{lecturer_id},{lecturer_name},{lecturer_faculty_code},{module_1},{module_2},{module_3},{module_4}"
+            else:
+                entry = f"{lecturer_id},{lecturer_name},{lecturer_faculty_code},{module_1},{module_2},{module_3},{module_4}"
 
             file.write(entry)
 
@@ -1207,7 +1246,6 @@ def delete_lecturer():
             available_lecturer_ids = []
             for lecturer in lecturers:
                 available_lecturer_ids.append(lecturer[0:4])
-                print(available_lecturer_ids)
 
         target_lecturer_id = ""
         while True:
@@ -1222,8 +1260,7 @@ def delete_lecturer():
                         print("")
                         manage_lecturers_menu()
                     else:
-                        print(
-                            f"The latest lecturer ID in use is {available_lecturer_ids[len(available_lecturer_ids) - 1]}")
+                        print(f"The latest lecturer ID in use is {available_lecturer_ids[len(available_lecturer_ids) - 1]}")
                         print("Enter 'exit' to return to previous menu.")
                         target_lecturer_id = input("Lecturer ID (4 characters and exists): ")
                 else:
@@ -1362,7 +1399,10 @@ def add_faculty():
 
     try:
         with open(faculties_filepath, "a") as file:
-            entry = f"{faculty_code},{faculty_name}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
+            if used_faculty_codes:
+                entry = f"{faculty_code},{faculty_name}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
+            else:
+                entry = f"{faculty_code},{faculty_name}"
 
             file.write(entry)  # Writes the info to file
 
@@ -1397,6 +1437,11 @@ def delete_faculty():
                         print("")
                         manage_faculties_menu()
                     else:
+                        print("")
+                        print("Available Faculty Codes:")
+                        for faculty in available_faculty_code:
+                            print(f"- {faculty}")
+                        print("")
                         print("Enter 'exit' to return to previous menu.")
                         target_faculty_code = input("Faculty Code (2 characters and exists): ")
                 else:
@@ -1468,6 +1513,181 @@ def view_faculties():
         print("An error has occurred! The file was not found. Please contact developer.")
 
 
+def manage_modules_menu():
+    print("======================")
+    print("Module Management Menu")
+    print("======================")
+    print("1) Add A Module")
+    print("2) Remove A Module")
+    print("3) Return to previous menu")
+    print("")
+
+    while True:  # Repeats infinitely unless a valid choice is given
+        try:
+            choice = int(input("Enter your choice (1/2/3): "))  # Gets the user's input
+            if choice in [1, 2, 3]:  # Checks if the user input is valid
+                break  # Stops the while loop
+            else:
+                print("You need to enter a value between 1 and 3!")
+                print("")
+        except ValueError:  # Exception handling in case a non-integer value is inputted
+            print("You need to enter a value between 1 and 3!")
+            print("")
+
+    match choice:
+        case 1:
+            add_modules()
+        case 2:
+            delete_modules()
+        case 3:
+            admin_menu()
+
+
+def add_modules():
+    modules_filepath = "../files/modules.txt"  # Relative filepath for the collection courses
+    print("============")
+    print("Add A Module")
+    print("============")
+    print("")
+
+    try:
+        with open(modules_filepath, "r") as file:  # Reads the courses.txt file
+            modules = file.readlines()  # Gets all the current courses
+            used_module_codes = []
+            for module in modules:
+                used_module_codes.append(module[0:5])  # Gets all the course codes that have been used
+
+            module_code = ""
+            while True:
+                try:
+                    if len(module_code) != 5 or module_code in used_module_codes:  # Length and uniqueness check for course code
+                        module_code = input("Module Code (5 characters and unique): ")
+                    else:
+                        break
+                except ValueError:
+                    pass
+
+            module_name = input("Module Name: ")
+
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        with open(modules_filepath, "a") as file:
+            if used_module_codes:
+                entry = f"{module_code},{module_name}\n"  # Compiles the info above into the format: course_code,course_name, course_credits
+            else:
+                entry = f"{module_code},{module_name}"
+
+            file.write(entry)  # Writes the info to file
+
+            print("")
+            print("Module has been created successfully!")
+            print("")
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    manage_modules_menu()  # Brings the user back to the faculties menu
+
+
+def delete_modules():
+    modules_filepath = "../files/modules.txt"  # Relative filepath of collection of student data
+    try:
+        with open(modules_filepath, "r") as file:  # Reads and fetches student data
+            modules = file.readlines()
+            available_module_code = []
+            for module in modules:
+                available_module_code.append(module[0:5])
+
+        target_module_code = ""
+        while True:
+            try:
+                if len(target_module_code) != 5 or target_module_code not in available_module_code:
+                    if target_module_code == 'exit':
+                        manage_modules_menu()
+                    if len(available_module_code) == 0:
+                        print("")
+                        print(
+                            "There are no modules registered yet! A module needs to be created before you can delete one!")
+                        print("")
+                        manage_faculties_menu()
+                    else:
+                        print("")
+                        print("Available Module Codes:")
+                        for module in available_module_code:
+                            print(f"- {module}")
+                        print("")
+                        print("Enter 'exit' to return to previous menu.")
+                        target_module_code = input("Module Code (2 characters and exists): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        if len(modules) == 1:
+            open(modules_filepath, 'w').close()
+            print(f"Module {target_module_code} was successfully deleted!")
+            print("")
+            manage_faculties_menu()
+        else:
+            for module in modules:
+                if target_module_code == module[0:5]:
+                    modules.pop(modules.index(module))
+            try:
+                with open(modules_filepath, "w") as file:
+                    file.writelines(modules)
+                print(f"Module {target_module_code} was successfully deleted!")
+                print("")
+                manage_modules_menu()
+            except FileNotFoundError:
+                print("An error has occurred! The file was not found. Please contact developer.")
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def view_modules():
+    modules_filepath = "../files/modules.txt"
+    pages = {1: []}
+
+    try:
+        with open(modules_filepath, "r") as file:
+            modules = file.readlines()
+
+            for module in modules:
+                module = module.strip('\n')
+                if is_page_full(pages):
+                    create_new_page(pages)
+                write_to_page(pages, module)
+
+            print(f"There are {len(modules)} modules registered stored in {len(pages)} page(s).")
+            print("")
+
+            while True:
+                for page in pages:
+                    print(f"Page {page} (First Entry: {pages.get(page)[0][0:5]})")
+                try:
+                    print("")
+                    target_page = int(input("Enter the desired page number (Enter 0 to exit): "))
+                    if target_page == 0:
+                        print("")
+                        view_all_data()
+                except ValueError:
+                    pass
+                if target_page > len(pages):
+                    print(f"Page {target_page} does not exist!")
+                else:
+                    current_modules = pages.get(target_page)
+                    for module in current_modules:
+                        module_code, module_name = module.split(',')
+                        print(f"Module Code: {module_code}")
+                        print(f"Module Name: {module_name}")
+                        print("=====================================")
+
+
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
 def generate_report():
     students_filepath = "../files/students.txt"
     courses_filepath = "../files/courses.txt"
@@ -1520,11 +1740,19 @@ def view_all_data():
     courses_filepath = "../files/students.txt"
     faculties_filepath = "../files/faculty.txt"
     modules_filepath = "../files/modules.txt"
+    lecturers_filepath = "../files/lecturers.txt"
 
     try:
         with open(students_filepath, "r") as file:
             students = file.readlines()
             total_students = len(students)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        with open(lecturers_filepath, "r") as file:
+            lecturers = file.readlines()
+            total_lecturers = len(lecturers)
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
@@ -1553,28 +1781,30 @@ def view_all_data():
     print("View All Data")
     print("=============")
     print("")
+    print(f"| Total Registered Courses: {total_courses}")
     print(f"| Total Registered Students: {total_students}")
-    print(f"| Total Active Courses: {total_courses}")
+    print(f"| Total Registered Lecturers: {total_lecturers}")
     print(f"| Total Registered Modules: {total_modules}")
-    print(f"| Total Faculties: {total_faculties}")
+    print(f"| Total Registered Faculties: {total_faculties}")
     print("")
-    print("1) View All Active Courses")
-    print("2) View All Student Data")
+    print("1) View All Registered Courses")
+    print("2) View All Registered Data")
     print("3) View All Registered Lecturers")
-    print("4) View All Faculties")
-    print("5) Back to Admin Menu")
+    print("4) View All Registered Modules")
+    print("5) View All Registered Faculties")
+    print("6) Back to Admin Menu")
     print("")
 
     while True:  # Repeats infinitely unless a valid choice is given
         try:
-            choice = int(input("Enter your choice (1/2/3/4/5): "))  # Gets the user's input
-            if choice in [1, 2, 3, 4, 5]:  # Checks if the user input is valid
+            choice = int(input("Enter your choice (1/2/3/4/5/6): "))  # Gets the user's input
+            if choice in [1, 2, 3, 4, 5, 6]:  # Checks if the user input is valid
                 break  # Stops the while loop
             else:
-                print("You need to enter a value between 1 and 5!")
+                print("You need to enter a value between 1 and 6!")
                 print("")
         except ValueError:  # Exception handling in case a non-integer value is inputted
-            print("You need to enter a value between 1 and 5!")
+            print("You need to enter a value between 1 and 6!")
             print("")
 
     match choice:
@@ -1585,8 +1815,10 @@ def view_all_data():
         case 3:
             view_lecturers()
         case 4:
-            view_faculties()
+            view_modules()
         case 5:
+            view_faculties()
+        case 6:
             admin_menu()
 
 
@@ -1596,6 +1828,320 @@ def admin_logout():
     print("")
 
     main_menu()
+
+
+def register_admin():
+    admin_filepath = "../files/admins.txt"  # Relative filepath for the text file where account details are stored
+    registered_usernames = []  # Pre-initialized array for usernames in the file
+
+    try:
+        with open(admin_filepath, "r") as file:  # Gets all the usernames in the file and appends to the array
+            admin_accounts = file.readlines()
+            for account in admin_accounts:
+                username, password = account.split(",")
+                registered_usernames.append(username)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        file = open(admin_filepath, "a")
+
+        print("")
+        print("==============")
+        print("Create Account")
+        print("==============")
+
+        admin_id = ""  # Gets new user ID
+        while True:
+            try:
+                if len(admin_id) < 4 or admin_id in registered_usernames:  # Length and uniqueness check for the ID
+                    admin_id = input("Username (min. 4 characters and unique): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        admin_password = ""  # Gets user password
+        while True:
+            try:
+                if len(admin_password) < 7:  # Length check for the password
+                    admin_password = input("Password (min. 7 characters): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        file.write(f"\n{admin_id},{admin_password}")  # Writes the new account to file
+
+        print("")
+        print("Administrator account created successfully!")
+
+        file.close()  # Close the file
+        account_registration_menu()  # Brings user back to registration menu
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def register_lecturer():
+    lecturer_filepath = "../files/lecturer_accounts.txt"  # Relative filepath for the text file where account details are stored
+    registered_usernames = []  # Pre-initialized array for usernames in the file
+
+    try:
+        with open(lecturer_filepath, "r") as file:  # Gets all the usernames in the file and appends to the array
+            lecturer_accounts = file.readlines()
+            for account in lecturer_accounts:
+                username, password = account.split(",")
+                registered_usernames.append(username)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        file = open(lecturer_filepath, "a")
+
+        print("")
+        print("==============")
+        print("Create Account")
+        print("==============")
+
+        lecturer_id = ""  # Gets new user ID
+        while True:
+            try:
+                if len(lecturer_id) < 4 or lecturer_id in registered_usernames:  # Length and uniqueness check for the ID
+                    lecturer_id = input("Username (min. 4 characters and unique): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        lecturer_password = ""  # Gets user password
+        while True:
+            try:
+                if len(lecturer_password) < 7:  # Length check for the password
+                    lecturer_password = input("Password (min. 7 characters): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        if registered_usernames:
+            file.write(f"\n{lecturer_id},{lecturer_password}")  # Writes the new account to file
+        else:
+            file.write(f"{lecturer_id},{lecturer_password}")
+
+
+        print("")
+        print("Lecturer account created successfully!")
+
+        file.close()  # Close the file
+        account_registration_menu()  # Brings user back to registration menu
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def register_student():
+    students_filepath = "../files/student_accounts.txt"  # Relative filepath for the text file where account details are stored
+    registered_usernames = []  # Pre-initialized array for usernames in the file
+
+    try:
+        with open(students_filepath, "r") as file:  # Gets all the usernames in the file and appends to the array
+            student_accounts = file.readlines()
+            for account in student_accounts:
+                username, password = account.split(",")
+                registered_usernames.append(username)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        file = open(students_filepath, "a")
+
+        print("")
+        print("==============")
+        print("Create Account")
+        print("==============")
+
+        student_id = ""  # Gets new user ID
+        while True:
+            try:
+                if len(student_id) < 4 or student_id in registered_usernames:  # Length and uniqueness check for the ID
+                    student_id = input("Username (min. 4 characters and unique): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        student_password = ""  # Gets user password
+        while True:
+            try:
+                if len(student_password) < 7:  # Length check for the password
+                    student_password = input("Password (min. 7 characters): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        if registered_usernames:
+            file.write(f"\n{student_id},{student_password}")  # Writes the new account to file
+        else:
+            file.write(f"{student_id},{student_password}")
+
+        print("")
+        print("Student account created successfully!")
+
+        file.close()  # Close the file
+        account_registration_menu()  # Brings user back to registration menu
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def register_registrar():
+    registrar_filepath = "../files/registrars.txt"  # Relative filepath for the text file where account details are stored
+    registered_usernames = []  # Pre-initialized array for usernames in the file
+
+    try:
+        with open(registrar_filepath, "r") as file:  # Gets all the usernames in the file and appends to the array
+            registrar_accounts = file.readlines()
+            for account in registrar_accounts:
+                username, password = account.split(",")
+                registered_usernames.append(username)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        file = open(registrar_filepath, "a")
+
+        print("")
+        print("==============")
+        print("Create Account")
+        print("==============")
+
+        registrar_id = ""  # Gets new user ID
+        while True:
+            try:
+                if len(registrar_id) < 4 or registrar_id in registered_usernames:  # Length and uniqueness check for the ID
+                    registrar_id = input("Username (min. 4 characters and unique): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        registrar_password = ""  # Gets user password
+        while True:
+            try:
+                if len(registrar_password) < 7:  # Length check for the password
+                    registrar_password = input("Password (min. 7 characters): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        if registered_usernames:
+            file.write(f"\n{registrar_id},{registrar_password}")  # Writes the new account to file
+        else:
+            file.write(f"{registrar_id},{registrar_password}")
+
+        print("")
+        print("Registrar account created successfully!")
+
+        file.close()  # Close the file
+        account_registration_menu()  # Brings user back to registration menu
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def register_accountant():
+    accountants_filepath = "../files/accountants.txt"  # Relative filepath for the text file where account details are stored
+    registered_usernames = []  # Pre-initialized array for usernames in the file
+
+    try:
+        with open(accountants_filepath, "r") as file:  # Gets all the usernames in the file and appends to the array
+            accountant_accounts = file.readlines()
+            for account in accountant_accounts:
+                username, password = account.split(",")
+                registered_usernames.append(username)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    try:
+        file = open(accountants_filepath, "a")
+
+        print("")
+        print("==============")
+        print("Create Account")
+        print("==============")
+
+        accountant_id = ""  # Gets new user ID
+        while True:
+            try:
+                if len(accountant_id) < 4 or accountant_id in registered_usernames:  # Length and uniqueness check for the ID
+                    accountant_id = input("Username (min. 4 characters and unique): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        accountant_password = ""  # Gets user password
+        while True:
+            try:
+                if len(accountant_password) < 7:  # Length check for the password
+                    accountant_password = input("Password (min. 7 characters): ")
+                else:
+                    break
+            except ValueError:
+                pass
+
+        if registered_usernames:
+            file.write(f"\n{accountant_id},{accountant_password}")  # Writes the new account to file
+        else:
+            file.write(f"{accountant_id},{accountant_password}")
+
+        print("")
+        print("Accountant account created successfully!")
+
+        file.close()  # Close the file
+        account_registration_menu()  # Brings user back to registration menu
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+
+def account_registration_menu():
+    print("=========================")
+    print("Account Registration Menu")
+    print("=========================")
+    print("What account do you wish to register?")
+    print("")
+    print("1) Administrator")
+    print("2) Lecturer")
+    print("3) Student")
+    print("4) Registrar")
+    print("5) Accountant")
+    print("6) Return to previous menu")
+    print("")
+
+    while True:  # Repeats infinitely unless a valid choice is given
+        try:
+            choice = int(input("Enter your choice (1/2/3/4/5/6): "))  # Gets the user's input
+            if choice in [1, 2, 3, 4, 5, 6]:  # Checks if the user input is valid
+                break  # Stops the while loop
+            else:
+                print("You need to enter a value between 1 and 6!")
+                print("")
+        except ValueError:  # Exception handling in case a non-integer value is inputted
+            print("You need to enter a value between 1 and 6!")
+            print("")
+
+    match choice:
+        case 1:
+            register_admin()
+        case 2:
+            register_lecturer()
+        case 3:
+            register_student()
+        case 4:
+            register_registrar()
+        case 5:
+            register_accountant()
+        case 6:
+            admin_menu()
 
 
 def main_menu():
@@ -1609,6 +2155,10 @@ def main_menu():
     check_registrar_file()
     check_accountant_file()
     check_admin_file()
+    check_backup_date_file()
+    check_backup_date()
+    check_student_account_file()
+    check_lecturer_account_file()
 
     print("============================================")  # Prints the selection menu for the UMS
     print("Welcome to the University Management System!")
@@ -1652,6 +2202,4 @@ def main_menu():
             exit()  # Exits the program
 
 
-#main_menu()
-view_courses()
-
+main_menu()
