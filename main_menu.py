@@ -538,16 +538,11 @@ def view_courses():  # Lists all courses in paginated view
                 else:
                     current_courses = pages.get(target_page)  # Prints all courses stored on that page
                     for course in current_courses:
-                        course_code, course_name, course_credits, sem_1, sem_2, sem_3, sem_4, sem_5, sem_6 = course.split(',')
+                        course_code, course_name, course_credits, course_fees = course.split(',')
                         print(f"Course Code: {course_code}")
                         print(f"Course Name: {course_name}")
                         print(f"Course Credits: {course_credits}")
-                        print(f"Semester 1 Fees: ${sem_1}")
-                        print(f"Semester 2 Fees: ${sem_2}")
-                        print(f"Semester 3 Fees: ${sem_3}")
-                        print(f"Semester 4 Fees: ${sem_4}")
-                        print(f"Semester 5 Fees: ${sem_5}")
-                        print(f"Semester 6 Fees: ${sem_6}")
+                        print(f"Course Fees: ${course_fees}")
                         print("=====================================")
 
 
