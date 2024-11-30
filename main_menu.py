@@ -426,63 +426,8 @@ def add_course():  # Creates a new course and stores it to file
 
             while True:
                 try:
-                    sem_1_fees = int(input("Enter Semester 1 Fees: "))
-                    if sem_1_fees > 0:
-                        break
-                    else:
-                        print("You need to enter an integer value larger than 0!")
-                        print("")
-                except ValueError:
-                    print("You need to enter an integer value!")
-
-            while True:
-                try:
-                    sem_2_fees = int(input("Enter Semester 2 Fees: "))
-                    if sem_2_fees > 0:
-                        break
-                    else:
-                        print("You need to enter an integer value larger than 0!")
-                        print("")
-                except ValueError:
-                    print("You need to enter an integer value!")
-
-            while True:
-                try:
-                    sem_3_fees = int(input("Enter Semester 3 Fees: "))
-                    if sem_3_fees > 0:
-                        break
-                    else:
-                        print("You need to enter an integer value larger than 0!")
-                        print("")
-                except ValueError:
-                    print("You need to enter an integer value!")
-
-            while True:
-                try:
-                    sem_4_fees = int(input("Enter Semester 4 Fees: "))
-                    if sem_4_fees > 0:
-                        break
-                    else:
-                        print("You need to enter an integer value larger than 0!")
-                        print("")
-                except ValueError:
-                    print("You need to enter an integer value!")
-
-            while True:
-                try:
-                    sem_5_fees = int(input("Enter Semester 5 Fees: "))
-                    if sem_5_fees > 0:
-                        break
-                    else:
-                        print("You need to enter an integer value larger than 0!")
-                        print("")
-                except ValueError:
-                    print("You need to enter an integer value!")
-
-            while True:
-                try:
-                    sem_6_fees = int(input("Enter Semester 6 Fees: "))
-                    if sem_6_fees > 0:
+                    course_fees = int(input("Enter Course Fees: "))
+                    if course_fees > 0:
                         break
                     else:
                         print("You need to enter an integer value larger than 0!")
@@ -496,9 +441,9 @@ def add_course():  # Creates a new course and stores it to file
     try:
         with open(courses_filepath, "a") as file:
             if used_course_codes:
-                entry = f"\n{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}"  # Compiles the info above into the format: course_code,course_name, course_credits
+                entry = f"\n{course_code},{course_name},{course_credits},{course_fees}"  # Compiles the info above into the format: course_code,course_name, course_credits
             else:
-                entry = f"{course_code},{course_name},{course_credits},{sem_1_fees},{sem_2_fees},{sem_3_fees},{sem_4_fees},{sem_5_fees},{sem_6_fees}"
+                entry = f"{course_code},{course_name},{course_credits},{course_fees}"
             file.write(entry)  # Writes the info to file
 
             print("")
@@ -641,6 +586,7 @@ def manage_students_menu():  # Menu with everything related to students
 
 
 def edit_student():
+    target_student = ""
     students_filepath = "../files/students.txt"  # Relative filepath for the collection of students stored
     available_student_ids = []
 
