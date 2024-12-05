@@ -1,6 +1,8 @@
 import datetime
 from datetime import *
 
+# START OF ADMINISTRATOR AND MAIN MENU MODULE
+
 
 def check_backup_date():  # Checks if the difference between the last backup and today is 3 days
     backup_filepath = "../files/backup_date.txt"
@@ -246,23 +248,18 @@ def check_admin_login(user_id, user_password):  # Checks if the username and pas
         registered_admin_passwords.append(password)
     if user_id in registered_admin_usernames:
         if user_password == registered_admin_passwords[registered_admin_usernames.index(user_id)]:
-            login_success()
+            print("")
+            print("Admin login successful!")
+            print("")
+
+            admin_menu()
         else:
-            print("PW Wrong")
-            login_fail()
+            admin_login_fail()
     else:
-        login_fail()
+        admin_login_fail()
 
 
-def login_success():  # Shows success message and sends user to the main admin menu
-    print("")
-    print("Admin login successful!")
-    print("")
-
-    admin_menu()
-
-
-def login_fail():  # Gives the user options to try again or to choose their account type again.
+def admin_login_fail():  # Gives the user options to try again or to choose their account type again.
     print("")
     print("The username/password you enter is incorrect! Would you like to:")
     print("1) Try again")
@@ -464,16 +461,17 @@ def delete_course():  # Removes an existing course from the file
             for course in courses:  # Gets all the existing course codes that can be deleted
                 available_course_codes.append(course[0:5])
 
+        if len(available_course_codes) == 0:  # If there are no courses, user cannot delete anything
+            print("")
+            print("There are no courses yet! You need to create a course before deleting one.")
+            print("")
+            manage_courses_menu()
+
         target_course_code = ""  # Gets the course code that the user wants to delete
         while True:
             try:
                 if len(target_course_code) != 5 or target_course_code not in available_course_codes:  # Length and existence check
                     if target_course_code == 'exit':  # Option for user to cancel the deletion process
-                        manage_courses_menu()
-                    if len(available_course_codes) == 0:  # If there are no courses, user cannot delete anything
-                        print("")
-                        print("There are no courses yet! You need to create a course before deleting one.")
-                        print("")
                         manage_courses_menu()
                     else:
                         print(
@@ -485,18 +483,23 @@ def delete_course():  # Removes an existing course from the file
             except ValueError:
                 pass
 
-        for course in courses:
-            if target_course_code == course[0:5]:  # Searches through the array and pops the intended course
-                courses.pop()
-
-        try:
-            with open(courses_filepath, "w") as file:
-                file.writelines(courses)  # Overwrites the current file with the new collection of courses
+        if len(courses) == 1:  # If there is only one student registered, do not need to search for student, just delete everything straightaway
+            open(courses_filepath, 'w').close()
             print(f"Course {target_course_code} was successfully deleted!")
             print("")
-            manage_courses_menu()
-        except FileNotFoundError:
-            print("An error has occurred! The file was not found. Please contact developer.")
+            manage_students_menu()
+        else:
+            for course in courses:
+                if target_course_code == course[0:5]:  # Searches through the array and pops the intended course
+                    courses.pop()
+            try:
+                with open(courses_filepath, "w") as file:
+                    file.writelines(courses)  # Overwrites the current file with the new collection of courses
+                print(f"Course {target_course_code} was successfully deleted!")
+                print("")
+                manage_courses_menu()
+            except FileNotFoundError:
+                print("An error has occurred! The file was not found. Please contact developer.")
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
@@ -885,7 +888,7 @@ def change_student_email(student_id, students, current_email):
     new_email = ""
     while True:
         try:
-            if '@' and '.' not in new_email:  # Length and uniqueness check for course code
+            if '@' and '.' not in new_email:  # Uniqueness check for course code
                 new_email = input(f"Enter {student_id}'s new email: ")
             else:
                 break
@@ -1075,6 +1078,23 @@ def add_lecturer():
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
+    try:
+        with open(modules_filepath, "r") as file2:
+            modules = file2.readlines()
+            existing_module_codes = []
+            for module in modules:
+                existing_module_codes.append(module[0:5])
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    if len(available_faculty_code) == 0:
+        print("You need to create a faculty first before registering a lecturer!")
+        admin_menu()
+
+    if len(existing_module_codes) == 0:
+        print("You need to create a module first before registering a lecturer!")
+        admin_menu()
+
     print("============")
     print("Add A Lecturer")
     print("============")
@@ -1107,9 +1127,6 @@ def add_lecturer():
             while True:
                 try:
                     if len(lecturer_faculty_code) != 2 or lecturer_faculty_code not in available_faculty_code:
-                        if len(available_faculty_code) == 0:
-                            print("You need to create a faculty first before registering a lecturer!")
-                            admin_menu()
                         lecturer_faculty_code = input("Lecturer Faculty Code (2 characters and exists): ")
                     else:
                         break
@@ -1118,8 +1135,7 @@ def add_lecturer():
 
             while True:  # Repeats infinitely unless a valid choice is given
                 try:
-                    number_of_modules = int(input(
-                        "Enter number of modules this lecturer is in-charge of (1/2/3/4): "))  # Gets the user's input
+                    number_of_modules = int(input("Enter number of modules this lecturer is in-charge of (1/2/3/4): "))  # Gets the user's input
                     if number_of_modules in range(1, 5):  # Checks if the user input is valid
                         break  # Stops the while loop
                     else:
@@ -1128,15 +1144,6 @@ def add_lecturer():
                 except ValueError:  # Exception handling in case a non-integer value is inputted
                     print("You need to enter a value between 1 and 4!")
                     print("")
-            try:
-                with open(modules_filepath, "r") as file2:
-                    modules = file2.readlines()
-                    existing_module_codes = []
-                    for module in modules:
-                        existing_module_codes.append(module[0:5])
-                        print(existing_module_codes)
-            except FileNotFoundError:
-                print("An error has occurred! The file was not found. Please contact developer.")
 
             lecturer_modules = ["null"] * 4
             for i in range(number_of_modules):
@@ -1144,10 +1151,8 @@ def add_lecturer():
                 while True:
                     try:
                         if len(module_code) != 5 or module_code not in existing_module_codes:
-                            if len(existing_module_codes) == 0:
-                                print("There are currently no modules available right now!")
-                                manage_lecturers_menu()
-                            module_code = input("Module Code (5 characters and unique): ")
+                            print(f"Available Module Codes: {existing_module_codes}")
+                            module_code = input("Module Code (5 characters and exists): ")
                             lecturer_modules[i] = module_code
                         else:
                             break
@@ -1187,18 +1192,18 @@ def delete_lecturer():
             available_lecturer_ids = []
             for lecturer in lecturers:
                 available_lecturer_ids.append(lecturer[0:4])
+            if len(available_lecturer_ids) == 0:
+                print("")
+                print(
+                    "There are no lecturers registered yet! Create one before you delete one.")
+                print("")
+                manage_lecturers_menu()
 
         target_lecturer_id = ""
         while True:
             try:
                 if len(target_lecturer_id) != 4 or target_lecturer_id not in available_lecturer_ids:
                     if target_lecturer_id == 'exit':
-                        manage_lecturers_menu()
-                    if len(available_lecturer_ids) == 0:
-                        print("")
-                        print(
-                            "There are no lecturers registered yet! Create one before you delete one.")
-                        print("")
                         manage_lecturers_menu()
                     else:
                         print(f"The latest lecturer ID in use is {available_lecturer_ids[len(available_lecturer_ids) - 1]}")
@@ -1634,6 +1639,7 @@ def generate_report():
     courses_filepath = "../files/courses.txt"
     faculties_filepath = "../files/faculty.txt"
     modules_filepath = "../files/modules.txt"
+    lecturers_filepath = "../files/lecturers.txt"
 
     try:
         with open(students_filepath, "r") as file:
@@ -1663,14 +1669,22 @@ def generate_report():
     except FileNotFoundError:
         print("An error has occurred! The file was not found. Please contact developer.")
 
+    try:
+        with open(lecturers_filepath, "r") as file:
+            lecturers = file.readlines()
+            total_lecturers = len(lecturers)
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
     print("======================")
     print("Generated Admin Report")
     print("======================")
     print("")
     print(f"| Total Registered Students: {total_students}")
-    print(f"| Total Active Courses: {total_courses}")
+    print(f"| Total Registered Courses: {total_courses}")
     print(f"| Total Registered Modules: {total_modules}")
-    print(f"| Total Faculties: {total_faculties}")
+    print(f"| Total Registered Faculties: {total_faculties}")
+    print(f"| Total Registered Lecturers: {total_lecturers}")
     print("")
 
     admin_menu()
@@ -2097,9 +2111,9 @@ def main_menu():
     check_accountant_file()
     check_admin_file()
     check_backup_date_file()
-    check_backup_date()
     check_student_account_file()
     check_lecturer_account_file()
+    check_backup_date()
 
     print("============================================")  # Prints the selection menu for the UMS
     print("Welcome to the University Management System!")
@@ -2142,5 +2156,426 @@ def main_menu():
         case 6:
             exit()  # Exits the program
 
+# END OF ADMINISTRATOR AND MAIN MENU
+# START OF ACCOUNTANT MODULE
+
+
+def login_accountant():  # The login page for accountant
+    print("")
+    print("========================")
+    print("Accountant Login Page")
+    print("========================")
+
+    accountant_id = ""
+    while True:
+        if len(accountant_id) < 4:  # Length check for the accountant username
+            accountant_id = input("Username (min. 4 characters): ")
+        else:
+            break
+
+    accountant_password = ""
+    while True:
+        if len(accountant_password) < 7:  # Length check for the accountant password
+            accountant_password = input("Password (min. 7 characters): ")
+        else:
+            break
+
+    check_accountant_login(accountant_id, accountant_password)  # Sends the username and password to check_admin_login()
+
+
+def check_accountant_login(user_id, user_password):  # Checks if the username and password provided exists and matches
+    accountants_filepath = "../files/accountants.txt"  # Relative filepath for the collection of accountant usernames and passwords
+    try:
+        with open(accountants_filepath, "r") as file:
+            accounts = file.readlines()  # Fetches all accountant accounts stored
+    except FileNotFoundError:
+        print("An error has occurred! The file was not found. Please contact developer.")
+
+    for account in accounts:  # Parses the comma separated values into individual values
+        username, password = account.split(',')  # Account is always stored in the format: username,password
+        if user_id == username:  # Checks if username exists
+            if user_password == password.strip('\n'):  # If username exists, checks if passwords match
+                login_accountant_success()
+            else:
+                print("PW Wrong")
+                login_accountant_fail()
+        else:
+            login_accountant_fail()
+
+
+def login_accountant_success():  # Shows success message and sends user to the main accountant menu
+    print("")
+    print("Accountant login successful!")
+    print("")
+
+    accountant_menu()
+
+
+def login_accountant_fail():  # Gives the user options to try again or to choose their account type again.
+    print("")
+    print("The username/password you enter is incorrect! Would you like to:")
+    print("1) Try again")
+    print("2) Return to main menu")
+    print("")
+
+    while True:  # Repeats infinitely unless a valid choice is given
+        try:
+            choice = int(input("Enter your choice (1/2): "))  # Gets the user's input
+            if choice in [1, 2]:  # Checks if the user input is valid
+                break  # Stops the while loop
+            else:
+                print("You need to enter a value between 1 and 2!")
+                print("")
+        except ValueError:  # Exception handling in case a non-integer value is inputted
+            print("You need to enter a value between 1 and 2!")
+            print("")
+
+    match choice:
+        case 1:
+            login_accountant()
+        case 2:
+            main_menu()
+
+
+# File name for storing fees data
+FEES_FILE = "../files/fees.txt"
+COURSES_FILE = "../files/courses.txt"
+STUDENTS_FILE = "../files/students.txt"
+
+
+def record_tuition_fee():  # Function to record tuition fees
+    try:
+        print("")
+        print("===================")
+        print("Record Tuition Fees")
+        print("===================")
+        print("")
+
+        student_id = input("Enter Student ID (5 characters long and exists): ")
+
+        with open(FEES_FILE, "r") as fees_file:  # Check if the student already has a record
+            for line in fees_file:
+                file_student_id, file_student_name, file_course_code, file_amount_paid, file_amount_due = line.strip().split(",")
+                if file_student_id == student_id:
+                    print("Sorry, this student already has a record.")
+                    print("Please use the 'Update Payment Records' option to update the payment.")
+                    return
+
+        # Search for student details in students.txt
+        with open(STUDENTS_FILE, "r") as student_file:  # Search for the student details in the students.txt file
+            for line in student_file:
+                file_student_id, file_student_name, file_student_course_code, file_student_phone_number, file_student_email, file_student_gender, file_student_dob = line.strip().split(",")
+                if file_student_id == student_id:
+                    break
+
+            else:  # If student not found, display error and exit
+                print("Sorry, student ID not found in the records.")
+                print("Please enter a valid Student ID!")
+                return
+
+        # Display student details
+        print("")
+        print(f"Student Found")
+        print("")
+        print(f"Student ID: {file_student_id}")
+        print(f"Student Name: {file_student_name}")
+        print(f"Student Course Code: {file_student_course_code}")
+        print(f"Student Phone Number: {file_student_phone_number}")
+        print(f"Student Gmail: {file_student_email}")
+        print(f"Student Gender (M/F): {file_student_gender}")
+        print(f"Student D.O.B.: {file_student_dob}\n")
+
+        course_code = file_student_course_code  # Fetch the course fee based on the course code
+        course_fee = None
+        with open(COURSES_FILE, "r") as courses_file:
+            for line in courses_file:
+                file_course_code, file_course_name, file_course_credits, file_course_fee = line.strip().split(",")
+                if file_course_code == course_code:
+                    course_fee = float(file_course_fee)
+                    break
+
+        # If the course code is not found
+        if course_fee is None:
+            print(f"Error: Course code {file_course_code} not found in the records.")
+            return
+
+        print(f"Course Fee for {file_course_code}: ${course_fee:.2f}")
+
+        confirmation = input("Do you want to proceed with payment? (Yes/No): ").strip().lower()
+        if confirmation != "yes":
+            print("Returning to menu...")
+            return
+
+        # Prompt for tuition fee details
+        amount_paid = float(input("Enter Amount Paid: "))
+
+        # Validate amounts
+        if amount_paid < 0:
+            print("Sorry, amounts cannot be negative.")
+            print("Please try again.")
+            return
+
+        if course_fee < amount_paid:
+            print("Payment exceeds the course fee.")
+            print("Please try again. ")
+            return
+
+        amount_due = course_fee - amount_paid  # Calculate the outstanding fee
+
+        # Write fee details to student_fees.txt
+        with open(FEES_FILE, "a") as fees_file:
+            fees_file.write(f"{student_id},{file_student_name},{course_code},{amount_paid},{amount_due}\n")
+
+        print("Tuition fee recorded successfully.")
+    except FileNotFoundError as e:
+        print(f"Error: {e}. Ensure the students.txt file exists.")
+    except ValueError:
+        print("Please enter a valid student ID.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
+# Function to view outstanding fees
+def view_outstanding_fees():
+    try:
+        print("\n================")
+        print("Outstanding Fees")
+        print("================")
+
+        with open(FEES_FILE, "r") as fees_file, open(COURSES_FILE, "r") as courses_file:
+            # Build a course fee dictionary for quick lookup
+            course_fees = {}
+            for line in courses_file:
+                course_code, course_name, course_credits, course_fee = line.strip().split(",")
+                course_fees[course_code] = float(course_fee)
+
+            print("\nStudents with Outstanding Fees:")
+            print("{:<10} {:<15} {:>15}".format("ID", "Name", "Outstanding Amount"))
+            print("-" * 45)
+
+            found = False
+            for line in fees_file:
+                student_id, student_name, student_course_code, amount_paid, amount_due = line.strip().split(",")
+
+                # Calculate outstanding fee
+                amount_due = float(amount_due)
+
+
+                if amount_due > 0:
+                    print("{:<10} {:<20} ${:>10.2f}".format(student_id, student_name, amount_due))
+                    found = True
+
+            if not found:
+                print("No students with outstanding fees.")
+    except FileNotFoundError:
+        print("No fee records found. Please record fees first.")
+    except Exception as e:
+        print(f"An error occurred while viewing outstanding fees: {e}")
+
+
+# Function to update payment records
+def update_payment_record():
+    print("\n======================")
+    print("Update Payment Records")
+    print("======================")
+
+    try:
+        student_id = input("Enter Student ID to update payment: ")
+        found = False
+        updated_data = []
+
+        with open(FEES_FILE, "r") as file:
+            for line in file:
+                file_student_id, file_student_name, file_student_course_code, file_amount_paid, file_amount_due = line.strip().split(",")
+
+                if file_student_id == student_id:  # show student's details
+                    print("\nCurrent Record: ")
+                    print(f"Student name: {file_student_name}")
+                    print(f"Student ID: {file_student_id}")
+                    print(f"Student Course Code: {file_student_course_code}")
+                    print(f"Amount Paid: ${float(file_amount_paid):.2f}")
+                    print(f"Amount Due: ${float(file_amount_due):.2f}")
+
+                    if float(file_amount_due) <= 0:  # No outstanding payment
+                        print("\nNo amount due for this student")
+                        print("No updates required.")
+                        return
+
+                    amount_paid = float(input("\nEnter Additional Payment Amount: "))
+                    if amount_paid < 0:
+                        print("Payment cannot be negative.")
+                        print("Please try again.")
+                        return
+
+                    new_amount_paid = float(file_amount_paid) + amount_paid
+                    new_amount_due = float(file_amount_due) - amount_paid
+
+                    if new_amount_due < 0:
+                        print("Error: Payment exceeds the due amount.")
+                        print("Please try again.")
+                        return
+
+                    print(f"\nUpdated Record:")
+                    print(f"Amount Paid: ${new_amount_paid:.2f}")
+                    print(f"Amount Due: ${new_amount_due:.2f}")
+                    updated_data.append(f"{file_student_id},{file_student_name},{file_student_course_code},{new_amount_paid},{new_amount_due}")
+                    found = True
+                else:
+                    # Keep unchanged records
+                    updated_data.append(f"{file_student_id},{file_student_name},{file_student_course_code},{file_amount_paid},{file_amount_due}")
+
+        if not found:
+            print("\nStudent ID not found.")
+            print("Please update your tuition fee record before accessing this option.")
+            return
+
+        with open(FEES_FILE, "w") as file:
+            for record in updated_data:
+                file.write(record + "\n")
+
+        print("Payment record updated successfully.")
+    except FileNotFoundError:
+        print("No fee records found. Please record fees first.")
+    except ValueError:
+        print("Invalid input. Please enter valid number for the payment amount.")
+    except Exception as e:
+        print(f"An error occurred while updating payment records: {e}")
+
+
+# Function to issue a fee receipt
+def issue_fee_receipt():
+    print("\n==================")
+    print("Issue Fee Receipts")
+    print("==================")
+
+    try:  # Enter student ID to generate receipts
+        student_id = input("Enter Student ID to issue receipt: ")
+        with open(FEES_FILE, "r") as file:
+            for line in file:
+                file_student_id, file_student_name, file_amount_paid, file_student_course_code, file_amount_due = line.strip().split(",")
+                if file_student_id == student_id:
+                    receipt_file = f"../receipts/receipt_{student_id}.txt"
+                    with open(receipt_file, "w") as receipt:
+                        receipt.write("University Management System\n")
+                        receipt.write("-" * 40 + "\n")
+                        receipt.write(f"Receipt for Student ID: {file_student_id}\n")
+                        receipt.write(f"Name: {file_student_name}\n")
+                        receipt.write(f"Course Code: {file_amount_paid}\n")
+                        receipt.write(f"Amount Paid: ${file_student_course_code}\n")
+                        receipt.write(f"Amount Due: ${file_amount_due}\n")
+                        receipt.write("-" * 40 + "\n")
+                        receipt.write("Thank you for your payment.\n")
+                    print(f"Receipt issued successfully for {file_student_id} at {receipt_file}")
+                    return
+        print("\nStudent ID not found.")  # if student id not found in students_fee.txt
+        print("Please update your tuition fee record before accessing this option.")
+    except FileNotFoundError:
+        print("No fee records found. Please record fees first.")
+    except Exception as e:
+        print(f"An error occurred while issuing receipt: {e}")
+
+
+# Function to view financial summary
+def view_financial_summary():
+
+    print("\n=================")
+    print("Financial Summary")
+    print("=================")
+    try:  # Store the amounts by all student (ttl paid and ttl due)
+        total_paid = 0
+        total_due = 0
+
+        with open(FEES_FILE, "r") as file:  # Open students fee file and calculate totals
+            for line in file:
+                student_id, student_name, student_course_code, amount_paid, amount_due = line.strip().split(",")
+                total_paid += float(amount_paid)
+                total_due += float(amount_due)
+
+        # Display the total
+        print(f"Total Fees Collected: ${total_paid}")
+        print(f"Total Outstanding Fees: ${total_due}")
+    except FileNotFoundError:
+        print("No fee records found. Please record fees first.")
+    except Exception as e:
+        print(f"An error occurred while viewing financial summary: {e}")
+
+
+# function to view summary by course
+def view_course_summary():
+    try:
+        print("\n=========================")
+        print("View Fee Summary by Course")
+        print("=========================")
+
+        # Course data will map each course code to its fees and names
+        course_data = {}
+        with open(COURSES_FILE, "r") as courses_file:
+            for line in courses_file:
+                course_code, course_name, course_credits, course_fee = line.strip().split(",")
+                course_data[course_code] = {"name": course_name, "paid": 0.0, "due": 0.0}
+
+        # Read fee data and calculate totals by course
+        with open(FEES_FILE, "r") as fees_file:
+            for line in fees_file:
+                student_id, student_name, student_course_code, amount_paid, amount_due = line.strip().split(",")
+                amount_paid = float(amount_paid)
+                amount_due = float(amount_due)
+
+                if student_course_code in course_data:  # check if the course code from the student fee file exist in course data
+                    course_data[student_course_code]["paid"] += amount_paid
+                    course_data[student_course_code]["due"] += amount_due
+
+        # Display the course summary
+        print("\n{:<10} {:<20} {:>15} {:>15}".format("Course", "Course Name", "Total Paid", "Total Due"))
+        print("-" * 60)
+
+        for course_code, data in course_data.items():
+            print("{:<10} {:<20} ${:>14.2f} ${:>14.2f}".format(
+                course_code, data["name"], data["paid"], data["due"]
+            ))
+
+    except FileNotFoundError:
+        print("Course or fee records not found. Please ensure all files exist.")
+    except Exception as e:
+        print(f"An error occurred while viewing course summary: {e}")
+
+
+# Main menu for accountant functionalities
+def accountant_menu():
+    while True:
+        print("\n=================================")
+        print("---WELCOME TO ACCOUNTANT MENU!---")
+        print("=================================")
+        print("1. Record Tuition Fees")
+        print("2. View Outstanding Fees")
+        print("3. Update Payment Records")
+        print("4. Issue Fee Receipt")
+        print("5. View Financial Summary")
+        print("6. View Summary by Course")
+        print("7. Exit")
+        print("")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            record_tuition_fee()
+        elif choice == "2":
+            view_outstanding_fees()
+        elif choice == "3":
+            update_payment_record()
+        elif choice == "4":
+            issue_fee_receipt()
+        elif choice == "5":
+            view_financial_summary()
+        elif choice == "6":
+            view_course_summary()
+        elif choice == "7":
+            print("Exiting Accountant Menu.")
+            break
+        else:
+            print("You need to enter a value between 1 and 6! Please try again.")
+
+
+# END OF ACCOUNTANT MODULE
 
 main_menu()
