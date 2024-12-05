@@ -2150,14 +2150,20 @@ def main_menu():
         case 3:
             login_student()  # Login page for students
         case 4:
-            login_registar()  # Login page for Registrar
+            login_registrar()  # Login page for Registrar
         case 5:
             login_accountant()  # Login page for accountants
         case 6:
             exit()  # Exits the program
 
-# END OF ADMINISTRATOR AND MAIN MENU
+# END OF ADMINISTRATOR AND MAIN MENU MODULE
 # START OF ACCOUNTANT MODULE
+
+
+# File name for storing fees data
+FEES_FILE = "../files/fees.txt"
+COURSES_FILE = "../files/courses.txt"
+STUDENTS_FILE = "../files/students.txt"
 
 
 def login_accountant():  # The login page for accountant
@@ -2185,6 +2191,7 @@ def login_accountant():  # The login page for accountant
 
 def check_accountant_login(user_id, user_password):  # Checks if the username and password provided exists and matches
     accountants_filepath = "../files/accountants.txt"  # Relative filepath for the collection of accountant usernames and passwords
+    success = False
     try:
         with open(accountants_filepath, "r") as file:
             accounts = file.readlines()  # Fetches all accountant accounts stored
@@ -2193,14 +2200,13 @@ def check_accountant_login(user_id, user_password):  # Checks if the username an
 
     for account in accounts:  # Parses the comma separated values into individual values
         username, password = account.split(',')  # Account is always stored in the format: username,password
-        if user_id == username:  # Checks if username exists
+        if user_id == username.strip('\n'):  # Checks if username exists
             if user_password == password.strip('\n'):  # If username exists, checks if passwords match
                 login_accountant_success()
             else:
-                print("PW Wrong")
                 login_accountant_fail()
-        else:
-            login_accountant_fail()
+    if not success:
+        login_accountant_fail()
 
 
 def login_accountant_success():  # Shows success message and sends user to the main accountant menu
@@ -2235,12 +2241,6 @@ def login_accountant_fail():  # Gives the user options to try again or to choose
             login_accountant()
         case 2:
             main_menu()
-
-
-# File name for storing fees data
-FEES_FILE = "../files/fees.txt"
-COURSES_FILE = "../files/courses.txt"
-STUDENTS_FILE = "../files/students.txt"
 
 
 def record_tuition_fee():  # Function to record tuition fees
@@ -2500,7 +2500,7 @@ def view_financial_summary():
         print(f"An error occurred while viewing financial summary: {e}")
 
 
-# function to view summary by course
+# Function to view summary by course
 def view_course_summary():
     try:
         print("\n=========================")
@@ -2552,7 +2552,7 @@ def accountant_menu():
         print("4. Issue Fee Receipt")
         print("5. View Financial Summary")
         print("6. View Summary by Course")
-        print("7. Exit")
+        print("7. Log Out")
         print("")
 
         choice = input("Enter your choice: ")
@@ -2571,9 +2571,9 @@ def accountant_menu():
             view_course_summary()
         elif choice == "7":
             print("Exiting Accountant Menu.")
-            break
+            main_menu()
         else:
-            print("You need to enter a value between 1 and 6! Please try again.")
+            print("You need to enter a value between 1 and 7! Please try again.")
 
 
 # END OF ACCOUNTANT MODULE
