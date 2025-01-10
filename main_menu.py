@@ -2578,4 +2578,447 @@ def accountant_menu():
 
 # END OF ACCOUNTANT MODULE
 
+# START OF LECTURER MODULE
+
+# File paths for lecturer data management
+MODULES_FILE = "files/modules.txt"
+GRADES_FILE = "files/grades.txt"
+ATTENDANCE_FILE = "files/attendance.txt"
+LECTURERS_FILE = "files/lecturers.txt"
+LECTURER_ACCOUNT_FILE = "files/lecturer_accounts.txt"
+
+# Helper functions for file operations
+
+
+def file_exists_lecturer(file_path):
+    try:
+        with open(file_path, "r"):
+            return True
+    except FileNotFoundError:
+        return False
+
+
+def read_file(file_path):
+    if not file_exists_lecturer(file_path):
+        print(f"Error: File '{file_path}' not found. Please create it.")
+        return []
+    try:
+        with open(file_path, "r") as file:
+            return [line.strip() for line in file.readlines()]
+    except Exception as e:
+        print(f"Error reading file '{file_path}': {e}")
+        return []
+
+
+def append_to_file_lecturer(file_path, data):
+    try:
+        with open(file_path, "a") as file:
+            file.write(data + "\n")
+    except Exception as e:
+        print(f"Error writing to file '{file_path}': {e}")
+
+
+def validate_input_lecturer(prompt, valid_options=None):
+    while True:
+        user_input = input(prompt).strip()
+        if valid_options and user_input not in valid_options:
+            print(f"Invalid input. Please choose from: {', '.join(valid_options)}")
+        else:
+            return user_input
+
+
+def get_module_name(module_code):
+    """
+    Retrieves the module name for a given module code from modules.txt.
+    """
+    modules = read_file(MODULES_FILE)
+
+    for module in modules:
+        fields = module.strip().split(",", 1)
+        if fields[0] == module_code:
+            return fields[1]
+    return None
+
+
+# Lecturer functionalities
+def view_assigned_modules(modules):
+    valid_modules = [module for module in modules if module != "null"]
+    if not valid_modules:
+        print("No modules assigned to you.")
+        return
+
+    print("Your Assigned Modules:")
+    for module_code in valid_modules:
+        module_name = get_module_name(module_code)
+        if module_name:
+            print(f"- {module_code}: {module_name}")
+        else:
+            print(f"- {module_code}: [Module Name Not Found]")
+
+
+def get_lecturer_data(lecturer_id):
+    """
+    Retrieves lecturer data for the given lecturer_id.
+    """
+    lecturers = read_file(LECTURERS_FILE)
+
+
+    for lecturer in lecturers:
+
+        try:
+            fields = lecturer.strip().split(",")
+            if fields[0] == lecturer_id:
+                data = {
+                    "id": fields[0],
+                    "name": fields[1],
+                    "program": fields[2],  # Program
+                    "modules": fields[3:6],  # Modules
+                }
+                return data
+        except IndexError:
+            print(f"Skipping malformed entry: {lecturer}")
+    return None
+
+
+def get_lecturer_password(lecturer_id):
+    """
+    Retrieve the password for a given lecturer_id from lecturer-account.txt.
+    Format: lecturer_id,password
+    """
+    accounts = read_file(LECTURER_ACCOUNT_FILE)
+    for acc in accounts:
+        fields = acc.strip().split(",")
+        if len(fields) == 2 and fields[0] == lecturer_id:
+            return fields[1]  # Return the password
+    return None
+
+
+def lecturer_login():
+    """
+    Handles lecturer login by verifying Lecturer ID and password against lecturer-account.txt.
+    If invalid, prompts again or allows user to exit.
+    """
+    while True:
+        lecturer_id = input("Enter your Lecturer ID (or type 'exit' to quit): ").strip()
+        if lecturer_id.lower() == "exit":
+            print("Exiting program.")
+            return None  # Exit the login process gracefully
+
+        # Retrieve password for the given Lecturer ID
+        password = get_lecturer_password(lecturer_id)
+        if not password:
+            print("Invalid Lecturer ID. Please try again.")
+            continue
+
+        # Prompt for password
+        password_attempt = input("Enter your password: ").strip()
+        if password_attempt == password:
+            # Successful login
+            lecturer_data = get_lecturer_data(lecturer_id)
+            if lecturer_data:
+                print(f"Welcome, {lecturer_data['name']} from the {lecturer_data['program']} faculty!")
+                return lecturer_data
+            else:
+                print("Error: Lecturer data not found. Please contact admin.")
+        else:
+            print("Invalid password. Please try again.")
+
+
+def record_grades(lecturer_data):
+    """
+    Allows a lecturer to add or update grades for a student in their assigned modules.
+    Ensures the student exists in students.txt.
+    """
+    assigned_modules = [module for module in lecturer_data["modules"] if module != "null"]
+
+    if not assigned_modules:
+        print("You do not have any assigned modules to record grades for.")
+        return
+
+    print("\nYour Assigned Modules:")
+    for module in assigned_modules:
+        print(f"- {module}")
+
+    module_code = input("Enter Module Code: ").strip()
+    if module_code not in assigned_modules:
+        print("Error: You are not authorized to record grades for this module.")
+        return
+
+    # Verify student ID against students.txt
+    students = read_file(STUDENTS_FILE)
+    valid_student_ids = {student.split(",")[0] for student in students}
+
+    while True:
+        student_id = input("Enter Student ID: ").strip()
+        if student_id not in valid_student_ids:
+            print(f"Error: Student ID {student_id} not found in the system. Please try again.")
+        else:
+            break
+
+    grade = input("Enter Grade (e.g., A, B, C, D, F): ").strip().upper()
+
+    valid_grades = {"A", "B", "C", "D", "F"}
+    if grade not in valid_grades:
+        print("Invalid grade. Grade must be one of A, B, C, D, or F.")
+        return
+
+    # Read the existing grades file
+    grades = read_file(GRADES_FILE)
+    updated_grades = []
+    grade_found = False
+
+    for entry in grades:
+        try:
+            existing_student_id, existing_module_code, existing_grade = entry.split(",")
+            if existing_student_id == student_id and existing_module_code.strip() == module_code:
+                print(f"Updating grade for Student {student_id} in Module {module_code} from {existing_grade.strip()} to {grade}.")
+                updated_grades.append(f"{student_id},{module_code},{grade}")
+                grade_found = True
+            else:
+                updated_grades.append(entry.strip())
+        except ValueError:
+            print(f"Skipping malformed entry: {entry}")
+
+    if not grade_found:
+        print(f"Adding new grade for Student {student_id} in Module {module_code}: {grade}.")
+        updated_grades.append(f"{student_id},{module_code},{grade}")
+
+    # Write the updated grades back to the file
+    try:
+        with open(GRADES_FILE, "w") as file:
+            for updated_entry in updated_grades:
+                file.write(updated_entry + "\n")
+        print("Grades updated successfully.")
+    except Exception as e:
+        print(f"Error writing to the grades file: {e}")
+
+
+def view_student_list_lecturer(course_code):
+    """
+    Displays the list of students enrolled in a specific course.
+    """
+    students = read_file(STUDENTS_FILE)
+    print(f"\nStudents Enrolled in Course {course_code}:")
+
+    found = False
+    for student in students:
+        try:
+            student_id, name, course, phone, email, gender, dob = student.split(",")
+            if course.strip() == course_code:
+                print(f"ID: {student_id}, Name: {name}, Phone: {phone}, Email: {email}, Gender: {gender}, DOB: {dob}")
+                found = True
+        except ValueError:
+            print(f"Skipping malformed entry: {student}")
+
+    if not found:
+        print(f"No students found for course {course_code}.")
+
+
+def get_student_by_id(student_id):
+    """
+    Retrieves details of a specific student by their ID.
+    """
+    students = read_file(STUDENTS_FILE)
+    for student in students:
+        try:
+            fields = student.split(",")
+            if fields[0] == student_id:
+                return {
+                    "id": fields[0],
+                    "name": fields[1],
+                    "module": fields[2],
+                    "phone": fields[3],
+                    "email": fields[4],
+                    "gender": fields[5],
+                    "dob": fields[6],
+                }
+        except ValueError:
+            print(f"Skipping malformed student entry: {student}")
+    print(f"Student with ID {student_id} not found.")
+    return None
+
+
+def track_attendance(lecturer_data):
+    """
+    Allows a lecturer to mark attendance for students in their assigned modules.
+    Ensures the student ID exists in students.txt.
+    """
+    assigned_modules = [module for module in lecturer_data["modules"] if module != "null"]
+
+    if not assigned_modules:
+        print("You do not have any assigned modules to mark attendance for.")
+        return
+
+    print("\nYour Assigned Modules:")
+    for module in assigned_modules:
+        print(f"- {module}")
+
+    module_code = input("Enter Module Code: ").strip()
+    if module_code not in assigned_modules:
+        print("Error: You are not authorized to mark attendance for this module.")
+        return
+
+    # Verify student ID against students.txt
+    students = read_file(STUDENTS_FILE)
+    valid_student_ids = {student.split(",")[0] for student in students}
+
+    while True:
+        student_id = input("Enter Student ID: ").strip()
+        if student_id not in valid_student_ids:
+            print(f"Error: Student ID {student_id} not found in the system. Please try again.")
+        else:
+            break
+
+    status = validate_input_lecturer("Enter Attendance (Present/Absent): ", ["Present", "Absent"])
+
+    # Append attendance to the file
+    try:
+        append_to_file_lecturer(ATTENDANCE_FILE, f"{student_id},{module_code},{status}")
+        print(f"Attendance recorded successfully for Student {student_id} in Module {module_code}: {status}.")
+    except Exception as e:
+        print(f"Error recording attendance: {e}")
+
+
+def view_student_grades_lecturer():
+    """
+    Displays grades for all students in a module selected by the lecturer.
+    """
+    # Display all available modules
+    modules = read_file(MODULES_FILE)
+    if not modules:
+        print("No modules available. Please check the modules file.")
+        return
+
+    print("\nAvailable Modules:")
+    module_codes = []  # Store valid module codes for validation
+    for module in modules:
+        try:
+            module_code, module_name = module.split(",", 1)
+            print(f"- {module_code}: {module_name}")
+            module_codes.append(module_code.strip())
+        except ValueError:
+            print(f"Skipping malformed module entry: {module}")
+
+    # Prompt for valid module code
+    while True:
+        module_code = input("\nEnter Module Code to view grades: ").strip()
+        if module_code not in module_codes:
+            print("Invalid module code. Please choose from the available modules.")
+        else:
+            break
+
+    # Display grades for the selected module
+    grades = read_file(GRADES_FILE)
+    students = read_file(STUDENTS_FILE)
+    print(f"\nGrades for Module {module_code}:")
+
+    found = False
+    for grade_entry in grades:
+        try:
+            student_id, module, grade = grade_entry.split(",")
+            if module.strip() == module_code:
+                student_name = None
+                for student in students:
+                    try:
+                        student_fields = student.split(",")
+                        if student_fields[0] == student_id:
+                            student_name = student_fields[1]
+                            break
+                    except ValueError:
+                        continue
+                if student_name:
+                    print(f"ID: {student_id}, Name: {student_name}, Grade: {grade}")
+                else:
+                    print(f"ID: {student_id}, Name: [Not Found], Grade: {grade}")
+                found = True
+        except ValueError:
+            print(f"Skipping malformed grade entry: {grade_entry}")
+
+    if not found:
+        print(f"No grades found for module {module_code}.")
+
+
+def update_password_lecturer(lecturer_id):
+    """
+    Allows a lecturer to update their password in lecturer-account.txt.
+    """
+    accounts = read_file(LECTURER_ACCOUNT_FILE)
+    updated_accounts = []
+    password_changed = False
+
+    for acc in accounts:
+        fields = acc.strip().split(",")
+        if len(fields) == 2 and fields[0] == lecturer_id:
+            current_password = fields[1]
+            print("Enter your current password to verify:")
+            current_password_attempt = input("Current Password: ").strip()
+            if current_password_attempt == current_password:
+                new_password = input("Enter new password: ").strip()
+                confirm_password = input("Confirm new password: ").strip()
+                if new_password == confirm_password:
+                    updated_accounts.append(f"{lecturer_id},{new_password}")
+                    password_changed = True
+                    print("Password updated successfully.")
+                else:
+                    print("Passwords do not match. Password not changed.")
+                    updated_accounts.append(acc)  # Keep old password
+            else:
+                print("Incorrect current password. Password not changed.")
+                updated_accounts.append(acc)
+        else:
+            updated_accounts.append(acc)
+
+    if password_changed:
+        # Write updated accounts back to the file
+        try:
+            with open(LECTURER_ACCOUNT_FILE, "w") as file:
+                for account in updated_accounts:
+                    file.write(account + "\n")
+        except Exception as e:
+            print(f"Error updating password file: {e}")
+
+
+# Lecturer menu
+def lecturer_menu(lecturer_data):
+    while True:
+        print("\nLecturer Menu")
+        print("1. View Assigned Modules")
+        print("2. Record Grades")
+        print("3. View Student List")
+        print("4. Track Attendance")
+        print("5. View Student Grades")
+        print("6. Change Password")
+        print("7. Exit")
+
+        choice = validate_input_lecturer("Select an option: ", ["1", "2", "3", "4", "5", "6", "7"])
+        if choice == "1":
+            view_assigned_modules(lecturer_data["modules"])
+        elif choice == "2":
+            record_grades(lecturer_data)
+        elif choice == "3":
+            course_code = input("Enter Course Code: ").strip()
+            view_student_list_lecturer(course_code)
+        elif choice == "4":
+            track_attendance(lecturer_data)
+        elif choice == "5":
+            view_student_grades_lecturer()  # Ensure no arguments are passed if not needed
+        elif choice == "6":
+            update_password_lecturer(lecturer_data["id"])
+        elif choice == "7":
+            print("Exiting Lecturer Menu.")
+            break
+
+
+# Main function
+def main_lecturer():
+    # Proceed with lecturer login
+    lecturer_data = lecturer_login()
+    if lecturer_data:
+        lecturer_menu(lecturer_data)
+
+if __name__ == "__main__":
+    main_lecturer()
+
+# END OF LECTURER MODULE
+
 main_menu()
