@@ -1,2 +1,5 @@
-PYP01,Python Programming (G1)
-PYP02,Python Programming (G2)
+PYP01,Python Programing (G1)
+PYP02,Python Programing (G2)
+IDB01,Introduction to Databases (G1)
+IDB02,Introduction to Databases (G2)
+INT01,Introduction to Networking
