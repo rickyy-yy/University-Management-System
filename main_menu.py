@@ -1,5 +1,6 @@
 import datetime
 from datetime import *
+import random
 
 # START OF ADMINISTRATOR AND MAIN MENU MODULE
 
@@ -3020,5 +3021,588 @@ if __name__ == "__main__":
     main_lecturer()
 
 # END OF LECTURER MODULE
+
+# START OF STUDENT MODULE
+
+def check_studentmodule_files(): # Look up the contents of the module file and create a file with the name of the module. If it already exists, skip it.
+    studentmodules_filepath = "files/modules.txt" # Specifying file path
+    try:
+        with open(studentmodules_filepath, "r") as f: # Load module file
+            modules = f.read().splitlines() # splitlines Separate with a newline character
+            modules_n = []
+            for module in modules:
+                modules_n.append(module[6:])
+        txt = ".txt"
+        modules_filenames = [original + txt for original in modules_n] #Add .txt to all module names
+        modules_filenames = [original.replace(' ', '_') for original in modules_filenames] #Remove all Blank
+
+        for modules_filename in modules_filenames: # Create a file with the name of the module if it does not exist
+            modules_filepath = "files/student_modules/" + modules_filename # Creating a file path
+            try:
+                file = open(modules_filepath, "r") # Try Load the file
+                file.close
+            except FileNotFoundError: # Create a new file if the file does not exist
+                file = open(modules_filepath, "x")
+                file.close
+        
+                
+    except FileNotFoundError: #Create the module file if it does not exist
+        with open(studentmodules_filepath, "w") as f:
+            f.write("")
+
+
+
+def check_students_account_file():
+    modules_filepath = "files/students_account.txt" # Creating a file path
+    try:
+        file = open(modules_filepath, "r") # Try Load the file
+        file.close
+    except FileNotFoundError: # Create a new file if the file does not exist
+        file = open(modules_filepath, "x")
+        file.close
+
+
+
+
+def show_modules(student_id):
+    print("\nHere you can see the available modules\n") 
+    print("These are the available modules\n")
+    modules_filepath = "files/modules.txt" # Specifying file path
+    with open (modules_filepath) as f: # Load and display mudules
+        s = f.read()
+        print(s)
+    module_Edit = input("\n\nIf there is a module you would like to participate in, enter 1 to move to module operations.\nAny other characters entered will return you to the Student menu\n") 
+    if module_Edit == "1":
+        operate_modules(student_id)
+    else:
+        student_menu(student_id)
+
+
+
+
+def operate_modules(student_id): #Menu for operations regarding student modules
+    print("\nThis is operate modules\nHere you can operate the module\n")
+    print("Enter 1 to see the modules you are currently participating in")
+    print("Enter 2 to join the new module")
+    print("Enter 3 to exit the module you are currently in")
+    print("Enter 4 to return to student menu\n")
+
+    while True: #Reject invalid values
+        try: ##Input confirmation
+            selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+            if selection in [1, 2, 3, 4]:
+                break # loop finish
+            else:
+                print("Enter a number between 1 to 4\n")
+        except ValueError:
+            print("Enter a number between 1 to 4\n")
+
+    match selection:
+        case 1:
+            operate_modules_check(student_id)
+        case 2:
+            operate_modules_join(student_id)
+        case 3:
+            operate_modules_exit(student_id)
+        case 4:
+            student_menu()
+
+
+
+
+def check_all_modulefiles():
+    file_path = "files/modules.txt"
+    all_modules_n = []
+
+    with open(file_path, "r") as f:
+        for line in f:
+            all_modules_n.append(line[6:].replace(' ', '_').replace('\n',''))
+
+    return all_modules_n
+
+
+
+def check_id_in_modulesfiles(student_id):
+    all_modules_n = check_all_modulefiles()
+    save_specific_file = [] # Store the file containing the specified id
+
+    for file_name in all_modules_n: # Check the contents of each file one by one
+        file_path = "files/student_modules/" + file_name + ".txt"
+        with open(file_path, 'r') as f:
+            for line in f:
+                if line[0:5].strip() == student_id: # If the same student ID exists in the file, save the file name
+                    save_specific_file.append(file_name)
+                    break
+
+    save_specific_file_n = []
+    for subject in save_specific_file: # Delete .txt in the file name
+        subject = subject.removesuffix('.txt')
+        save_specific_file_n.append(subject)
+    return save_specific_file_n
+
+
+
+def operate_modules_check(student_id): # Displaying modules you are currently participating in
+    print("Check the participating modules")
+    print("The module you are currently participating in is\n")
+    participating_modules = check_id_in_modulesfiles(student_id) # Get information about participating modules
+    if participating_modules:
+        print(*participating_modules, sep='\n')
+    else:
+        print("Nothing\nPlease register the module\n")
+
+    print("\nEnter 1 to join the new module")
+    print("Enter 2 to exit the module you are currently in")
+    print("Enter 3 to return to student menu\n")
+
+    while True: #Reject invalid values
+        try: ##Input confirmation
+            selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+            if selection in [1, 2, 3]:
+                break # loop finish
+            else:
+                print("Enter a number between 1 to 3\n")
+        except ValueError:
+            print("Enter a number between 1 to 3\n")
+
+    match selection:
+        case 1:
+            operate_modules_join(student_id)
+        case 2:
+            operate_modules_exit(student_id)
+        case 3:
+            student_menu(student_id)
+
+
+
+def operate_modules_join(student_id):
+    print("You can join new modules here")
+    print("This is the module you can participate in\n")
+    all = check_all_modulefiles() # all modules
+    Participating = check_id_in_modulesfiles(student_id) # Modules this student is participating in
+    # Things that are present in all but not during participation
+    unique_to_all = [modules for modules in all if modules not in Participating]
+    
+    if unique_to_all:
+        print(*unique_to_all, sep='\n')
+
+        for module in unique_to_all:
+            print(f"\nDo you want to join {module}")
+            print("\nEnter 1 to join")
+            print("Enter 2 to not join")
+            print("Enter 3 to return to student menu\n")
+            while True: #Reject invalid values
+                try: #Input confirmation
+                    selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+                    if selection in [1, 2, 3]:
+                        break # loop finish
+                    else:
+                        print("Enter a number between 1 to 3\n")
+                except ValueError:
+                    print("Enter a number between 1 to 3\n")
+
+            match selection:
+                case 1:
+                    file_path = "files/student_modules/" + module + ".txt"
+                    with open(file_path, 'a') as f:
+                        f.write("\n" + student_id + ",0.00,0.000,0.000")
+                    print(f"You participate in {module}")
+                case 2:
+                    print(f"Did not participate in {module}")
+                case 3:
+                    student_menu(student_id)
+            student_menu(student_id)
+        print("\nReturn to student menu")
+        student_menu(student_id)
+
+    else:
+        print("Nothing\nAlready participated in all modules\n")
+        student_menu(student_id)
+
+
+
+def operate_modules_exit(student_id):
+    print("Here you can remove yourself from the module you are currently participating in\n")
+    your_module = check_id_in_modulesfiles(student_id)
+    if your_module:
+        print(*your_module, sep='\n')
+
+        for module in your_module:
+            print(f"\nDo you want to remove {module}")
+            print("\nEnter 1 to remove")
+            print("Enter 2 to not remove")
+            print("Enter 3 to return to student menu\n")
+            while True: #Reject invalid values
+                try: #Input confirmation
+                    selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+                    if selection in [1, 2, 3]:
+                        break # loop finish
+                    else:
+                        print("Enter a number between 1 to 3\n")
+                except ValueError:
+                    print("Enter a number between 1 to 3\n")
+
+            match selection:
+                case 1:
+                    file_path = "files/student_modules/" + module + ".txt"
+                    new_contents = ""
+                    with open(file_path, 'r') as f:
+                        for line in f:
+                            if line[0:5].strip() == student_id: # Check if the first five characters in the module file are the same as the student ID
+                                pass
+                            else:
+                                new_contents = new_contents + line
+                    with open(file_path, 'w') as f:
+                        f.write(new_contents)
+                    print(f"Removed from {module}")
+                case 2:
+                    print(f"Did not remove from {module}")
+                case 3:
+                    student_menu(student_id)
+        print("\nReturn to student menu")
+        student_menu(student_id)
+
+    else:
+        print("Nothing\nyou are not participating in any module\n")
+        student_menu(student_id)
+
+
+
+
+def grade(student_id):
+    print("\nHere you can see your grade\n")
+    print("This is your Grade\n")
+    participating_modules = check_id_in_modulesfiles(student_id)
+    sum, i = 0, 0
+    for module in participating_modules:
+        print(module)
+        score = check_score(student_id, module)
+        print(f"\tScore is {score}")
+        classify_grade(score)
+        sum += score
+        i += 1
+    ave = sum / i
+    print("Your total grade is")
+    classify_grade(ave)
+    print("\nReturn to student menu")
+    student_menu(student_id)
+        
+
+
+def check_score(student_id, modules):
+    file_path = "files/student_modules/" + modules + ".txt"
+    with open(file_path, 'r') as f:
+        for line in f:
+            if line[0:5].strip() == student_id: # If the same student ID exists in the file, save the grade
+                grade = float(line[6:10])*100 # Take out the score
+                break
+    return grade
+
+
+
+def classify_grade(score):
+    if score >= 90:
+        print("\tGrade : A\n")
+    elif score >= 80:
+        print("\tGrade : B\n")
+    elif score >= 70:
+        print("\tGrade : C\n")
+    elif score >= 60:
+        print("\tGrade : D\n")
+    elif score >= 50:
+        print("\tGrade : E\n")
+    else:
+        print("\tGrade : F\n")
+
+
+
+
+def attendance(student_id):
+    print("Here you can attend your class and your check your attendace percentage\n")
+    print("Enter 1 to attend your class")
+    print("Enter 2 to check your attendance rate")
+    print("Enter 3 to go back student menu")
+    while True: #Reject invalid values
+        try: #Input confirmation
+            selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+            if selection in [1, 2, 3]:
+                break # loop finish
+            else:
+                print("Enter a number between 1 to 3\n")
+        except ValueError:
+            print("Enter a number between 1 to 3\n")
+
+    match selection:
+        case 1:
+            attend_class(student_id)
+        case 2:
+            attendance_check(student_id)
+        case 3:
+            student_menu(student_id)
+
+
+
+def attend_class(student_id): # Attendance confirmation
+    result = False
+    count = False
+    attendance_code = ""
+    for i in range(3):
+        num = random.randint(0,9)
+        attendance_code = attendance_code + str(num)
+
+    print("\n\n**********************************")
+    print(f"Assume the attendance code was {attendance_code}")
+    print("**********************************\n\n")
+
+    print("Check the participating modules")
+    print("The module you are currently participating in is\n")
+    participating_modules = check_id_in_modulesfiles(student_id) # Get information about participating modules
+    if participating_modules:
+        print(*participating_modules, sep='\n')
+    else:
+        print("Nothing\nYou can not attend any module")
+        student_menu(student_id)
+
+    for module in participating_modules:
+        if count:
+            break
+        print(f"\n\nDo you want to attend {module}")
+        print("\nEnter 1 to attend this module")
+        print("Enter 2 to not attend this module")
+
+        while True: #Reject invalid values
+            try: ##Input confirmation
+                selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+                if selection in [1, 2]:
+                    break # loop finish
+                else:
+                    print("Enter a number 1 or 2\n")
+            except ValueError:
+                print("Enter a number 1 or 2\n")
+
+        match selection:
+            case 1:
+                add_classcount(student_id, module)
+                input_num = input("\nPlease enter the 3-digit attendance code: ")
+                if input_num == attendance_code:
+                    print("\nAttendance Success\n")
+                    add_attendance(student_id, module)
+                    count = True
+                    print("Return to student menu")
+                    student_menu(student_id)
+
+                else:
+                    print("\nAttendance faild\n")
+                    result = True
+                    count = True
+                    
+            case 2:
+                print("")
+    
+    if result:
+        print("Would you like to enter again?")
+        while True: #Reject invalid values
+            try: #Input confirmation
+                selection = int(input("Enter 1 to try again\nEnter 2 to go back student menu:  "))
+                if selection in [1, 2]:
+                    break # loop finish
+                else:
+                    print("Enter a number between 1 or 2\n")
+            except ValueError:
+                print("Enter a number between 1 or 2\n")
+
+        match selection:
+            case 1:
+                attend_class(student_id)
+            case 2:
+                student_menu(student_id)
+                            
+
+
+def add_attendance(student_id, modules): # Addition of attendance times
+    tem_file, num = "", ""
+    file_path = "files/student_modules/" + modules + ".txt" # Setting file path
+    with open(file_path, 'r') as f: # Reading module files
+        for line in f:
+            if line[0:5].strip() == student_id: # Check if the first five characters in the module file are the same as the student ID
+                num = float(line[11:16])*1000 # Reading attendance count
+                num = num + 1 # Add attendance count
+                front = line[0:11]
+                back = line[16:22]
+                num = format(num/1000,'.3f')
+                new = front + str(num) + back # Create a string with a new attendance count
+            else:
+                tem_file = tem_file + (line.strip() + "\n")
+        tem_file = tem_file + new
+    with open(file_path, 'w') as f:
+        f.write(tem_file)
+
+
+
+def add_classcount(student_id, modules): # Addition of class times
+    tem_file, num = "", ""
+    file_path = "files/student_modules/" + modules + ".txt" # Setting file path
+    with open(file_path, 'r') as f: # Reading module files
+        for line in f:
+            if line[0:5].strip() == student_id: # Check if the first five characters in the module file are the same as the student ID
+                num = float(line[17:22])*1000 # Reading class count
+                num = num + 1 # Add class count
+                front = line[0:17]
+                num = format(num/1000,'.3f')
+                new = front + str(num) # Create a string with a new class count
+            else:
+                tem_file = tem_file + (line.strip() + "\n")
+        tem_file = tem_file + new
+    with open(file_path, 'w') as f:
+        f.write(tem_file)
+
+
+
+def attendance_check(student_id): # Display attendance rate
+    print("\n\nThese are your attendance rates\n")
+    participating_modules = check_id_in_modulesfiles(student_id) # Get information about participating modules
+    i, all_p = 0, 0
+    for module in participating_modules:
+        i += 1
+        file_path = "files/student_modules/" + module + ".txt" # Setting file path
+        with open(file_path, 'r') as f: # Reading module files
+            for line in f:
+                if line[0:5].strip() == student_id: # Check if the first five characters in the module file are the same as the student ID
+                    attended = float(line[11:16]) # Reading attended class count
+                    all = float(line[17:22]) # Reading all class count
+                    try:
+                        percent = (attended / all) * 100
+                        all_p = all_p + percent
+                        print(f"{module} attendance rate is ")
+                        print(f"\t--{percent}%--\n")
+                        if percent < 70.0: # Display a warning message if the attendance rate is below 70%
+                            print("You may fail, Participate in class\n")
+                    except ZeroDivisionError: # If the class has never been held
+                        print("You have never attended a class yet")
+    print(f"\nThe overall attendance rate is\n\t--{all_p/i}%--\n") # Displaying overall attendance rate
+
+    print("Return to student menu")
+    student_menu(student_id)
+
+
+
+
+def exit_student(student_id):
+    print("Are you sure you want to leave the student module?")
+    print("If it's good, enter 'Y'. If it's bad, enter 'N': ")
+    while True:
+        exit = (input().lower().strip())
+        if exit in ["n","y"]:
+            break
+        else:
+            print("Please enter 'Y' or 'N'")
+    if exit == 'y':
+        print("Return to main menu\n")
+        main_menu()
+    else:
+        print("Continue on student page\n\n")
+        student_menu(student_id)
+
+
+
+def login_student(): #student login page
+    start = False
+    print("\nStudent Login Page\n")
+
+    student_id = ""
+    while True:
+        if len(student_id) == 5:
+            break
+        else:
+            student_id = input("Enter your student ID start with 'S'and must be 5 characters:  ")
+    
+    student_password = ""
+    while True:
+        if len(student_password) == 8:
+            break
+        else:
+            student_password = input("Password must be 8 characters:  ")
+    student_id, start = check_student_login(student_id, student_password)
+    if start:
+        check_studentmodule_files()
+        check_students_account_file()
+        student_menu(student_id)
+    else:
+        print("Return to main menu")
+        main_menu()
+
+
+
+def check_student_login(student_id, student_password):#Check if the ID and password match
+    student_filepath = "files/students_account.txt" 
+    login = False
+
+    try:
+        with open(student_filepath, "r") as f:
+            students = f.readlines()
+        for student in students:
+            student_id_C = student[0:5]
+            student_password_C = student[6:14]
+            if student_id == student_id_C and student_password == student_password_C:
+                login = True
+                break
+
+        if login:
+            print("Login successful\n")
+            start = True
+            return student_id, start
+        else:
+            print("Login failed\n") #If login fails, return to main menu or try logging in again
+            cont = input("Do you want to continue logging in?\nEnter 1 to continue, any other character will return you to the main menu:  ")
+            if cont == "1":
+                login_student()
+            else:
+                print("Return to the main menu")
+                main_menu()
+                return 00000 , False
+
+
+    except FileNotFoundError:
+        print("Please contact developer")
+
+    
+
+
+
+def student_menu(student_id):
+    print("==========================")
+    print("This is the student module")
+    print("==========================\n")
+    print("Here you can do various operations for student\n")
+    print("Please select the operation you want to do by number\n")
+    print("Enter 1 to show all available modules")
+    print("Enter 2 to perform operations related to modules")
+    print("Enter 3 to view your grades")
+    print("Enter 4 to perform operations related to attendance\n")
+    print("Enter 5 to go back main menu\n")
+
+    while True: #Reject invalid values
+        try:
+            selection = int(input("Enter your selection: ").strip()) #.strip() remove unnecessary whitespace
+            if selection in [1, 2, 3, 4, 5]:
+                break # loop finish
+            else:
+                print("Enter a number between 1 to 5\n")
+        except ValueError:
+            print("Enter a number between 1 to 5\n")
+
+    match selection:
+        case 1:
+            show_modules(student_id)
+        case 2:
+            operate_modules(student_id)
+        case 3:
+            grade(student_id)
+        case 4:
+            attendance(student_id)
+        case 5:
+            exit_student()
+
+# END OF STUDENT MENU
 
 main_menu()
